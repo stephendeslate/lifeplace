@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+      - ./backend/static:/app/static
+      - ./backend/media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=development_secret_key
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lifeplace
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - lifeplace-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+    command: npm start
+    networks:
+      - lifeplace-network
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lifeplace
+    ports:
+      - "5432:5432"
+    networks:
+      - lifeplace-network
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - lifeplace-network
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=development_secret_key
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lifeplace
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    command: celery -A core worker -l info
+    networks:
+      - lifeplace-network
+
+networks:
+  lifeplace-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

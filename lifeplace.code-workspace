@@ -1,0 +1,61 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.formatting.provider": "black",
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.sortImports.args": ["--profile", "black"],
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "ms-python.python"
+    },
+    "[javascript][javascriptreact][typescript][typescriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "terminal.integrated.defaultProfile.windows": "Command Prompt",
+    "terminal.integrated.profiles.windows": {
+      "Command Prompt": {
+        "path": "cmd.exe",
+        "args": ["/k", "${workspaceFolder}\\backend\\venv\\Scripts\\activate.bat"]
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.profiles.linux": {
+      "bash": {
+        "path": "bash",
+        "args": ["-c", "source ${workspaceFolder}/backend/venv/bin/activate && bash"]
+      }
+    },
+    "terminal.integrated.defaultProfile.osx": "bash",
+    "terminal.integrated.profiles.osx": {
+      "bash": {
+        "path": "bash",
+        "args": ["-c", "source ${workspaceFolder}/backend/venv/bin/activate && bash"]
+      }
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "batisteo.vscode-django",
+      "donjayamanne.python-extension-pack",
+      "ms-azuretools.vscode-docker",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-typescript-next"
+    ]
+  }
+}
