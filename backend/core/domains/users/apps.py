@@ -1,3 +1,4 @@
+# backend/core/domains/users/apps.py
 from django.apps import AppConfig
 
 
@@ -6,3 +7,6 @@ class UsersConfig(AppConfig):
     name = 'core.domains.users'
     label = 'users'
     verbose_name = 'Users'
+    
+    def ready(self):
+        import core.domains.users.signals
