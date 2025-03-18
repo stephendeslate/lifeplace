@@ -1,11 +1,16 @@
-from django.db import models
+# core/domains/users/models.py
+import uuid
+from datetime import timedelta
+
+from core.utils.models import BaseModel
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
-    """Define a model manager for User model with no username field."""
-
+    """Manager for User model with email-based authentication"""
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -38,20 +43,67 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """User model that uses email address instead of username."""
-
+    """User model with email-based authentication and role-based access"""
     username = None
     email = models.EmailField(_('email address'), unique=True)
     
-    # Add your custom fields here
-    # For example:
-    # phone_number = models.CharField(_('phone number'), max_length=15, blank=True)
-    # profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-
+    ROLE_CHOICES = (
+        ('CLIENT', 'Client'),
+        ('ADMIN', 'Admin'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CLIENT')
+    
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+    
+    def get_full_name(self):
+        """Return the first_name plus the last_name, with a space in between."""
+        full_name = f"{self.first_name} {self.last_name}"
+        return full_name.strip()
 
+    def get_display_name(self):
+        """Returns user's full name if available, otherwise email"""
+        if self.first_name or self.last_name:
+            return self.get_full_name()
+        return self.email
+    
     def __str__(self):
         return self.email
+
+
+class UserProfile(BaseModel):
+    """Profile for User with role-specific fields"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    company = models.CharField(max_length=200, blank=True, null=True)
+    
+    class Meta:
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+
+    def __str__(self):
+        return f"Profile for {self.user.email}"
+
+
+class AdminInvitation(BaseModel):
+    """Invitations for new admin users"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_invitations')
+    is_accepted = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(days=7)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"Invitation for {self.email}"
