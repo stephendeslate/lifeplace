@@ -132,19 +132,30 @@ The frontend follows a feature-based structure:
 
 ```
 frontend/
-├── public/
-├── src/
-│   ├── apis/              # API client code
-│   ├── components/        # Reusable components
-│   ├── contexts/          # React contexts
-│   ├── hooks/             # Custom hooks
-│   ├── pages/             # Page components
-|   |   ├── admin-crm/     # Admin facing CRM
-|   |   ├── client-portal/ # Client facing prtal
-│   ├── types/             # TypeScript types/interfaces
-│   └── utils/             # Utility functions
-├── package.json
-└── tsconfig.json
+├── admin-crm/     # Admin facing CRM
+│   ├── public/
+│   ├── src/
+│   │   ├── apis/              # API client code
+│   │   ├── components/        # Reusable components
+│   │   ├── contexts/          # React contexts
+│   │   ├── hooks/             # Custom hooks
+│   │   ├── pages/             # Page components
+│   │   ├── types/             # TypeScript types/interfaces
+│   │   └── utils/             # Utility functions
+│   ├── package.json
+│   └── tsconfig.json
+├── client-portal/             # Client facing portal
+│   ├── public/
+│   ├── src/
+│   │   ├── apis/              # API client code
+│   │   ├── components/        # Reusable components
+│   │   ├── contexts/          # React contexts
+│   │   ├── hooks/             # Custom hooks
+│   │   ├── pages/             # Page components
+│   │   ├── types/             # TypeScript types/interfaces
+│   │   └── utils/             # Utility functions
+│   ├── package.json
+│   └── tsconfig.json
 ```
 
 ## VS Code Integration

@@ -81,6 +81,7 @@ def export_files(url_paths, export_folder="export"):
 url_paths = [
     "backend/core/",
     "backend/core/domains/users/",
+    "backend/core/utils/",
 ]
 
 export_files(url_paths)
