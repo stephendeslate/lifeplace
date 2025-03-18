@@ -1,6 +1,7 @@
 Django==5.1.7
 djangorestframework==3.14.0
 django-environ==0.11.2
+djangorestframework-simplejwt==5.5.0
 psycopg2-binary==2.9.10
 celery==5.4.0
 redis==5.0.1
@@ -11,3 +12,6 @@ pytest-django==4.9.0
 black==25.1.0
 isort==5.13.2
 flake8==7.1.0
+certifi==2025.1.31
+dj_database_url==2.3.0
+whitenoise==6.9.0
