@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -26,17 +24,36 @@ services:
     networks:
       - lifeplace-network
 
-  frontend:
+  client-portal:
     build:
-      context: ./frontend
+      context: ./frontend/client-portal
       dockerfile: Dockerfile
     volumes:
-      - ./frontend:/app
+      - ./frontend/client-portal:/app
+      - ./frontend/shared:/app/src/shared
       - /app/node_modules
     ports:
       - "3000:3000"
     environment:
       - REACT_APP_API_URL=http://localhost:8000/api
+      - PORT=3000
+    command: npm start
+    networks:
+      - lifeplace-network
+
+  admin-crm:
+    build:
+      context: ./frontend/admin-crm
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/admin-crm:/app
+      - ./frontend/shared:/app/src/shared
+      - /app/node_modules
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+      - PORT=3001
     command: npm start
     networks:
       - lifeplace-network
