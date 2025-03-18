@@ -2,7 +2,7 @@ app = "lifeplace-backend"
 primary_region = "dfw" # Change this to your preferred region
 
 [build]
-  dockerfile = "backend/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   PORT = "8000"
