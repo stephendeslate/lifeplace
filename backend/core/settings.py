@@ -3,10 +3,11 @@ Django settings for the LifePlace project.
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
+
 import certifi
 import environ
-from datetime import timedelta
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +51,7 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     # Project apps - domains (must come before admin for custom user model)
     'core.domains.users.apps.UsersConfig',  # Users domain
+    'core.domains.communications.apps.CommunicationsConfig',  # Communications domain
     
     # Django built-in apps
     'django.contrib.admin',

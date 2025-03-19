@@ -16,6 +16,9 @@ import useAuth from "./hooks/useAuth";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
+import Settings from "./pages/settings/Settings";
+import MyProfile from "./pages/settings/accounts/MyProfile";
+import Users from "./pages/settings/accounts/Users";
 import theme from "./theme";
 import queryClient from "./utils/queryClient";
 
@@ -58,6 +61,32 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Settings routes */}
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/accounts/my-profile"
+        element={
+          <ProtectedRoute>
+            <MyProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/accounts/users"
+        element={
+          <ProtectedRoute>
+            <Users />
           </ProtectedRoute>
         }
       />

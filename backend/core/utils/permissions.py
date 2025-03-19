@@ -9,7 +9,9 @@ class IsAdmin(permissions.BasePermission):
     message = "Admin access required."
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'ADMIN'
+        return request.user.is_authenticated and (
+            request.user.role == 'ADMIN' or request.user.is_superuser
+        )
 
 
 class IsClient(permissions.BasePermission):
@@ -29,8 +31,8 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     message = "You must be the owner of this object or an admin."
 
     def has_object_permission(self, request, view, obj):
-        # Allow admins full access
-        if request.user.role == 'ADMIN':
+        # Allow admins and superusers full access
+        if request.user.role == 'ADMIN' or request.user.is_superuser:
             return True
             
         # Check if the object has a user attribute or is a user itself

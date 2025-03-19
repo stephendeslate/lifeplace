@@ -4,7 +4,6 @@ import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
   Person as PersonIcon,
-  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -117,16 +116,6 @@ const Header: React.FC<HeaderProps> = ({ onMobileNavOpen }) => {
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Profile" />
-            </MenuItem>
-            <MenuItem
-              component={RouterLink}
-              to="/settings"
-              onClick={handleMenuClose}
-            >
-              <ListItemIcon>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
             </MenuItem>
             <Divider />
             <MenuItem onClick={handleLogout}>
