@@ -45,3 +45,23 @@ export interface TemplatePreviewResponse {
   subject: string;
   body: string;
 }
+
+export interface EmailTemplateFormData {
+  name: string;
+  subject: string;
+  body: string;
+  attachments: string[];
+}
+
+export interface EmailTemplateErrors {
+  name?: string;
+  subject?: string;
+  body?: string;
+}
+
+export interface EmailTemplatesResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: EmailTemplate[];
+}

@@ -2,6 +2,7 @@
 import {
   EmailTemplate,
   EmailTemplateWithVariables,
+  EmailTemplatesResponse,
   TemplatePreviewRequest,
   TemplatePreviewResponse,
 } from "../types/settings.types";
@@ -12,10 +13,10 @@ export const communicationsApi = {
    * Get all email templates
    */
   getEmailTemplates: async (): Promise<EmailTemplate[]> => {
-    const response = await api.get<{ results: EmailTemplate[] }>(
+    const response = await api.get<EmailTemplatesResponse>(
       "/communications/email-templates/"
     );
-    return response.data.results || response.data;
+    return response.data.results || [];
   },
 
   /**
@@ -34,6 +35,20 @@ export const communicationsApi = {
   getAdminInvitationTemplate: async (): Promise<EmailTemplateWithVariables> => {
     const response = await api.get<EmailTemplateWithVariables>(
       "/communications/email-templates/admin_invitation/"
+    );
+    return response.data;
+  },
+
+  /**
+   * Get available template variables
+   */
+  getTemplateVariables: async (
+    templateType?: string
+  ): Promise<Record<string, string>> => {
+    const params = templateType ? { type: templateType } : {};
+    const response = await api.get<Record<string, string>>(
+      "/communications/email-templates/get_variable_options/",
+      { params }
     );
     return response.data;
   },
@@ -76,6 +91,13 @@ export const communicationsApi = {
       request
     );
     return response.data;
+  },
+
+  /**
+   * Delete an email template
+   */
+  deleteEmailTemplate: async (id: number): Promise<void> => {
+    await api.delete(`/communications/email-templates/${id}/`);
   },
 };
 
