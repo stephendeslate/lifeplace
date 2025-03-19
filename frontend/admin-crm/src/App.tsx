@@ -13,6 +13,7 @@ import {
 import ToastProvider from "./components/common/ToastProvider";
 import { AuthProvider } from "./contexts/AuthContext";
 import useAuth from "./hooks/useAuth";
+import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
@@ -45,10 +46,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 const AppWithAuth: React.FC = () => {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public routes - these don't require authentication */}
       <Route path="/login" element={<Login />} />
+      <Route path="/accept-invitation/:id" element={<AcceptInvitation />} />
 
-      {/* Protected routes */}
+      {/* Protected routes - these require authentication */}
       <Route
         path="/dashboard"
         element={

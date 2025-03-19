@@ -163,9 +163,6 @@ class AdminInvitationService:
             is_staff=True  # Admin users should have staff access
         )
         
-        # Create profile
-        UserProfile.objects.create(user=user)
-        
         # Mark invitation as accepted
         invitation.is_accepted = True
         invitation.save()
