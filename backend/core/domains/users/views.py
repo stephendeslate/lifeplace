@@ -158,16 +158,37 @@ class AdminInvitationListCreateAPIView(generics.ListCreateAPIView):
         )
 
 
-class AdminInvitationDetailAPIView(generics.RetrieveAPIView):
+class AdminInvitationDetailAPIView(generics.RetrieveDestroyAPIView):
     """
-    Retrieve an admin invitation
+    Retrieve or delete an admin invitation
     """
     serializer_class = AdminInvitationSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdmin]  # Only admins should delete invitations
     
     def get_object(self):
         invitation_id = self.kwargs.get('pk')
         return AdminInvitationService.get_invitation_by_id(invitation_id)
+        
+    def get_permissions(self):
+        """
+        Override to allow anyone to view an invitation, but only admins to delete
+        """
+        if self.request.method == 'DELETE':
+            return [IsAdmin()]
+        return [permissions.AllowAny()]
+        
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Optional: Add additional checks if needed
+        if instance.is_accepted:
+            return Response(
+                {"detail": "Cannot delete an already accepted invitation."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['POST'])
