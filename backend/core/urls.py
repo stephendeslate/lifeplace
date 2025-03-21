@@ -7,6 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('core.domains.users.urls')),
     path('api/communications/', include('core.domains.communications.urls')),
+    path('api/products/', include('core.domains.products.urls')),
+    path('api/events/', include('core.domains.events.urls')),
     # Add more domain URLs here
 ]
 

@@ -6,6 +6,7 @@ import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
+  ShoppingCart as ProductsIcon,
   Settings as SettingsIcon,
   Description as TemplateIcon,
 } from "@mui/icons-material";
@@ -67,6 +68,20 @@ const settingsSections: SettingsSection[] = [
         title: "Email Templates",
         path: "/settings/templates/email-templates",
         description: "Customize notification emails",
+      },
+    ],
+  },
+  {
+    id: "products",
+    title: "Products",
+    icon: ProductsIcon,
+    description: "Manage products, packages, and discounts",
+    subsections: [
+      {
+        id: "products",
+        title: "Products & Discounts",
+        path: "/settings/products",
+        description: "Manage your products, packages, and discount offerings",
       },
     ],
   },

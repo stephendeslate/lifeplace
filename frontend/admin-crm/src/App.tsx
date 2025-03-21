@@ -21,6 +21,7 @@ import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
 import EmailTemplates from "./pages/settings/templates/EmailTemplates";
+import Products from "./pages/settings/templates/Products";
 import theme from "./theme";
 import queryClient from "./utils/queryClient";
 
@@ -98,6 +99,14 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <EmailTemplates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/products"
+        element={
+          <ProtectedRoute>
+            <Products />
           </ProtectedRoute>
         }
       />

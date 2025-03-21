@@ -3,6 +3,7 @@ import {
   AccountCircle as AccountIcon,
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
+  ShoppingCart as ProductsIcon,
   Description as TemplateIcon,
 } from "@mui/icons-material";
 import {
@@ -35,6 +36,14 @@ const settingsSections = [
     icon: TemplateIcon,
     link: "/settings/templates/email-templates",
     color: "#10b981",
+  },
+  {
+    id: "products",
+    title: "Products",
+    description: "Manage products, packages, and discounts",
+    icon: ProductsIcon,
+    link: "/settings/products",
+    color: "#7c3aed",
   },
   {
     id: "payments",

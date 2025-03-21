@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     # Project apps - domains (must come before admin for custom user model)
     'core.domains.users.apps.UsersConfig',  # Users domain
     'core.domains.communications.apps.CommunicationsConfig',  # Communications domain
+    'core.domains.events.apps.EventsConfig', # Events domain
+    'core.domains.products.apps.ProductsConfig', # Products domain
     
     # Django built-in apps
     'django.contrib.admin',
