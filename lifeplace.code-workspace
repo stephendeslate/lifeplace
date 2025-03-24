@@ -28,22 +28,50 @@
     "terminal.integrated.profiles.windows": {
       "Command Prompt": {
         "path": "cmd.exe",
-        "args": ["/k", "${workspaceFolder}\\backend\\venv\\Scripts\\activate.bat"]
+        "args": [
+          "/k",
+          "${workspaceFolder}\\backend\\venv\\Scripts\\activate.bat"
+        ]
       }
     },
     "terminal.integrated.defaultProfile.linux": "bash",
     "terminal.integrated.profiles.linux": {
       "bash": {
         "path": "bash",
-        "args": ["-c", "source ${workspaceFolder}/backend/venv/bin/activate && bash"]
+        "args": [
+          "-c",
+          "source ${workspaceFolder}/backend/venv/bin/activate && bash"
+        ]
       }
     },
     "terminal.integrated.defaultProfile.osx": "bash",
     "terminal.integrated.profiles.osx": {
       "bash": {
         "path": "bash",
-        "args": ["-c", "source ${workspaceFolder}/backend/venv/bin/activate && bash"]
+        "args": [
+          "-c",
+          "source ${workspaceFolder}/backend/venv/bin/activate && bash"
+        ]
       }
+    },
+    "files.associations": {
+      "**/*.tsx": "typescriptreact"
+    },
+
+    "files.maxPathLength": 0,
+
+    "editor.semanticHighlighting.enabled": true,
+
+    "typescript.tsserver.watchOptions": {
+      "watchFile": "useFsEvents",
+      "watchDirectory": "useFsEvents",
+      "fallbackPolling": "dynamicPriorityPolling"
+    },
+
+    // More specific configuration for TypeScript React files
+    "[typescriptreact]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
   },
   "extensions": {

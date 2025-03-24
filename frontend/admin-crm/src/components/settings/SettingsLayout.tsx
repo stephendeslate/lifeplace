@@ -9,6 +9,7 @@ import {
   ShoppingCart as ProductsIcon,
   Settings as SettingsIcon,
   Description as TemplateIcon,
+  Assignment as WorkflowsIcon,
 } from "@mui/icons-material";
 import {
   Box,
@@ -82,6 +83,20 @@ const settingsSections: SettingsSection[] = [
         title: "Products & Discounts",
         path: "/settings/products",
         description: "Manage your products, packages, and discount offerings",
+      },
+    ],
+  },
+  {
+    id: "workflows",
+    title: "Workflows",
+    icon: WorkflowsIcon,
+    description: "Manage event workflows and stages",
+    subsections: [
+      {
+        id: "workflows",
+        title: "Workflow Templates",
+        path: "/settings/workflows",
+        description: "Configure workflow templates for events",
       },
     ],
   },

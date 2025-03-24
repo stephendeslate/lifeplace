@@ -1,4 +1,5 @@
 // frontend/admin-crm/src/types/products.types.ts
+import { EventType } from "./events.types";
 
 // Common pagination response interface
 export interface PaginationResponse<T> {
@@ -18,7 +19,7 @@ export interface ProductOption {
   base_price: number;
   currency: string;
   tax_rate: number;
-  event_type: number | null;
+  event_type: number | EventType | null;
   type: ProductType;
   type_display: string;
   is_active: boolean;
@@ -39,7 +40,7 @@ export interface ProductOptionFormData {
   base_price: number;
   currency: string;
   tax_rate: number;
-  event_type?: number | null;
+  event_type?: number | EventType | null;
   type: ProductType;
   is_active: boolean;
   allow_multiple: boolean;

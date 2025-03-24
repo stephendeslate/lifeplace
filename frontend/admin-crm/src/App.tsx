@@ -20,8 +20,9 @@ import Profile from "./pages/profile/Profile";
 import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
+import Products from "./pages/settings/products/Products";
 import EmailTemplates from "./pages/settings/templates/EmailTemplates";
-import Products from "./pages/settings/templates/Products";
+import Workflows from "./pages/settings/workflows/Workflows";
 import theme from "./theme";
 import queryClient from "./utils/queryClient";
 
@@ -107,6 +108,14 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Products />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/workflows"
+        element={
+          <ProtectedRoute>
+            <Workflows />
           </ProtectedRoute>
         }
       />

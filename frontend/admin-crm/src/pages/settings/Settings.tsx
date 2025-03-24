@@ -5,6 +5,7 @@ import {
   Payment as PaymentIcon,
   ShoppingCart as ProductsIcon,
   Description as TemplateIcon,
+  Assignment as WorkflowsIcon,
 } from "@mui/icons-material";
 import {
   Box,
@@ -44,6 +45,14 @@ const settingsSections = [
     icon: ProductsIcon,
     link: "/settings/products",
     color: "#7c3aed",
+  },
+  {
+    id: "workflows",
+    title: "Workflows",
+    description: "Manage event workflows and stages",
+    icon: WorkflowsIcon,
+    link: "/settings/workflows",
+    color: "#f59e0b",
   },
   {
     id: "payments",
