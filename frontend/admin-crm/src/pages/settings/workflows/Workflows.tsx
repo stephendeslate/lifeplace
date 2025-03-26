@@ -43,8 +43,9 @@ import {
   WorkflowTemplateItem,
 } from "../../../components/workflows";
 import { useEmailTemplates } from "../../../hooks/useEmailTemplates";
-import { useEvents } from "../../../hooks/useEvents";
+import { useEventTypes } from "../../../hooks/useEventTypes"; // Use the dedicated hook
 import { useWorkflows, useWorkflowTemplate } from "../../../hooks/useWorkflows";
+import { EventType } from "../../../types/events.types";
 import {
   StageType,
   WorkflowStage,
@@ -129,7 +130,7 @@ const Workflows: React.FC = () => {
     refetchStages,
   } = useWorkflowTemplate(selectedTemplate?.id);
 
-  const { eventTypes, isLoading: isLoadingEventTypes } = useEvents();
+  const { eventTypes, isLoading: isLoadingEventTypes } = useEventTypes();
 
   const {
     templates: emailTemplates,
@@ -505,7 +506,7 @@ const Workflows: React.FC = () => {
                 label="Filter by Event Type"
               >
                 <MenuItem value="">All Event Types</MenuItem>
-                {eventTypes.map((eventType) => (
+                {eventTypes.map((eventType: EventType) => (
                   <MenuItem key={eventType.id} value={eventType.id}>
                     {eventType.name}
                   </MenuItem>

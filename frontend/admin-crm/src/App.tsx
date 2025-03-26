@@ -1,6 +1,8 @@
 // frontend/admin-crm/src/App.tsx
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React from "react";
@@ -16,6 +18,7 @@ import useAuth from "./hooks/useAuth";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
 import Dashboard from "./pages/dashboard/Dashboard";
+import { EventDetails, EventsList } from "./pages/events";
 import Profile from "./pages/profile/Profile";
 import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
@@ -58,6 +61,22 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events"
+        element={
+          <ProtectedRoute>
+            <EventsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id"
+        element={
+          <ProtectedRoute>
+            <EventDetails />
           </ProtectedRoute>
         }
       />
@@ -131,18 +150,20 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <Router>
-            <AuthProvider>
-              <AppWithAuth />
-            </AuthProvider>
-          </Router>
-        </ToastProvider>
-        {process.env.NODE_ENV === "development" && (
-          <ReactQueryDevtools initialIsOpen={false} />
-        )}
-      </QueryClientProvider>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <Router>
+              <AuthProvider>
+                <AppWithAuth />
+              </AuthProvider>
+            </Router>
+          </ToastProvider>
+          {process.env.NODE_ENV === "development" && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
+        </QueryClientProvider>
+      </LocalizationProvider>
     </ThemeProvider>
   );
 };
