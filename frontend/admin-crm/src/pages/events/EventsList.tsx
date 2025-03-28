@@ -18,10 +18,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/common/Layout";
 import { EventFilters, EventList } from "../../components/events";
+import EventForm from "../../components/events/EventForm";
 import { useEvents } from "../../hooks/useEvents";
 import {
   Event,
   EventFilters as EventFiltersType,
+  EventFormData,
 } from "../../types/events.types";
 
 export const EventsList: React.FC = () => {
@@ -30,11 +32,25 @@ export const EventsList: React.FC = () => {
   const [filters, setFilters] = useState<EventFiltersType>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const { events, totalCount, isLoading, deleteEvent, isDeleting } = useEvents(
-    page,
-    filters
-  );
+  const {
+    events,
+    totalCount,
+    isLoading,
+    deleteEvent,
+    isDeleting,
+    createEvent,
+    isCreating,
+  } = useEvents(page, filters);
+
+  // Initialize with default values for new event
+  const initialEventFormData: Partial<EventFormData> = {
+    name: "",
+    status: "LEAD",
+    start_date: new Date().toISOString(),
+    // client and event_type will be selected by the user in the form
+  };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -63,7 +79,12 @@ export const EventsList: React.FC = () => {
   };
 
   const handleCreateEvent = () => {
-    navigate("/events/new");
+    setCreateDialogOpen(true);
+  };
+
+  const handleSubmitNewEvent = (formData: EventFormData) => {
+    createEvent(formData);
+    setCreateDialogOpen(false);
   };
 
   return (
@@ -136,6 +157,26 @@ export const EventsList: React.FC = () => {
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Event Dialog */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Create New Event</DialogTitle>
+        <DialogContent>
+          <EventForm
+            initialValues={initialEventFormData}
+            onSubmit={handleSubmitNewEvent}
+            isSubmitting={isCreating}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
         </DialogActions>
       </Dialog>
     </Layout>

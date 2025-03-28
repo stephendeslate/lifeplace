@@ -330,6 +330,20 @@ export const useClient = (id: number) => {
     },
   });
 
+  // Mutation to deactivate client
+  const deactivateClientMutation = useMutation({
+    mutationFn: () => clientsApi.deactivateClient(id),
+    onSuccess: () => {
+      toast.success("Client deactivated successfully");
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail || "Failed to deactivate client";
+      toast.error(errorMessage);
+    },
+  });
+
   return {
     client,
     isLoading,
@@ -340,5 +354,7 @@ export const useClient = (id: number) => {
     refetchEvents,
     updateClient: updateClientMutation.mutate,
     isUpdating: updateClientMutation.isPending,
+    deactivateClient: deactivateClientMutation.mutate,
+    isDeactivating: deactivateClientMutation.isPending,
   };
 };

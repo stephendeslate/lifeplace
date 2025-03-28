@@ -1,6 +1,7 @@
 // frontend/admin-crm/src/pages/clients/ClientDetails.tsx
 import {
   ArrowBack as ArrowBackIcon,
+  Delete as DeleteIcon,
   Edit as EditIcon,
 } from "@mui/icons-material";
 import {
@@ -10,7 +11,9 @@ import {
   CircularProgress,
   Container,
   Dialog,
+  DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   Tab,
   Tabs,
@@ -51,6 +54,7 @@ const ClientDetails: React.FC = () => {
   const clientId = id ? parseInt(id) : 0;
   const [activeTab, setActiveTab] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 
   const {
     client,
@@ -60,6 +64,8 @@ const ClientDetails: React.FC = () => {
     isLoadingEvents,
     updateClient,
     isUpdating,
+    deactivateClient,
+    isDeactivating,
   } = useClient(clientId);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -77,6 +83,15 @@ const ClientDetails: React.FC = () => {
   const handleUpdateClient = (formData: ClientFormData) => {
     updateClient(formData);
     setEditDialogOpen(false);
+  };
+
+  const handleDeactivateClient = () => {
+    if (client) {
+      deactivateClient();
+      setDeactivateDialogOpen(false);
+      // Navigate back to clients list after deactivation
+      navigate("/clients");
+    }
   };
 
   const handleViewEvent = (eventId: number) => {
@@ -149,13 +164,24 @@ const ClientDetails: React.FC = () => {
               Back to Clients
             </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<EditIcon />}
-              onClick={handleEditClient}
-            >
-              Edit Client
-            </Button>
+            <Box>
+              <Button
+                variant="contained"
+                startIcon={<EditIcon />}
+                onClick={handleEditClient}
+                sx={{ mr: 1 }}
+              >
+                Edit Client
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteIcon />}
+                onClick={() => setDeactivateDialogOpen(true)}
+              >
+                Deactivate Client
+              </Button>
+            </Box>
           </Box>
 
           {/* Client detail card */}
@@ -217,6 +243,32 @@ const ClientDetails: React.FC = () => {
             editMode={true}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* Deactivate Client Dialog */}
+      <Dialog
+        open={deactivateDialogOpen}
+        onClose={() => setDeactivateDialogOpen(false)}
+      >
+        <DialogTitle>Deactivate Client</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to deactivate the client "{client.first_name}{" "}
+            {client.last_name}"? The client will no longer be able to log in or
+            access their account.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeactivateDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleDeactivateClient}
+            color="error"
+            variant="contained"
+            disabled={isDeactivating}
+          >
+            {isDeactivating ? "Deactivating..." : "Deactivate"}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Layout>
   );
