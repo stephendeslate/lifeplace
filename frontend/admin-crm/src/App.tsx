@@ -25,6 +25,10 @@ import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
 import Products from "./pages/settings/products/Products";
+import {
+  QuestionnaireDetails,
+  Questionnaires,
+} from "./pages/settings/questionnaires";
 import EmailTemplates from "./pages/settings/templates/EmailTemplates";
 import Workflows from "./pages/settings/workflows/Workflows";
 import theme from "./theme";
@@ -168,6 +172,22 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Workflows />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/questionnaires"
+        element={
+          <ProtectedRoute>
+            <Questionnaires />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/questionnaires/:id"
+        element={
+          <ProtectedRoute>
+            <QuestionnaireDetails />
           </ProtectedRoute>
         }
       />

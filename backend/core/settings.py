@@ -53,8 +53,10 @@ INSTALLED_APPS = [
     'core.domains.users.apps.UsersConfig',  # Users domain
     'core.domains.communications.apps.CommunicationsConfig',  # Communications domain
     'core.domains.events.apps.EventsConfig', # Events domain
+    'core.domains.clients.apps.ClientsConfig',  # Clients domain
     'core.domains.products.apps.ProductsConfig', # Products domain
     'core.domains.workflows.apps.WorkflowsConfig',  # Workflows domain
+    'core.domains.questionnaires.apps.QuestionnairesConfig',  # Questionnaires domain
     
     # Django built-in apps
     'django.contrib.admin',

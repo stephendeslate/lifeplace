@@ -4,6 +4,7 @@ import {
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
   ShoppingCart as ProductsIcon,
+  QuestionAnswer as QuestionnaireIcon,
   Description as TemplateIcon,
   Assignment as WorkflowsIcon,
 } from "@mui/icons-material";
@@ -45,6 +46,14 @@ const settingsSections = [
     icon: ProductsIcon,
     link: "/settings/products",
     color: "#7c3aed",
+  },
+  {
+    id: "questionnaires",
+    title: "Questionnaires",
+    description: "Manage client information questionnaires",
+    icon: QuestionnaireIcon,
+    link: "/settings/questionnaires",
+    color: "#8B5CF6",
   },
   {
     id: "workflows",

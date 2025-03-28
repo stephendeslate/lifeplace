@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/products/', include('core.domains.products.urls')),
     path('api/events/', include('core.domains.events.urls')),
     path('api/workflows/', include('core.domains.workflows.urls')),
+    path('api/questionnaires/', include('core.domains.questionnaires.urls')),
     # Add more domain URLs here
 ]
 

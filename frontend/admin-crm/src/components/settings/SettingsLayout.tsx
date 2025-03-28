@@ -7,6 +7,7 @@ import {
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
   ShoppingCart as ProductsIcon,
+  QuestionAnswer as QuestionnaireIcon,
   Settings as SettingsIcon,
   Description as TemplateIcon,
   Assignment as WorkflowsIcon,
@@ -83,6 +84,20 @@ const settingsSections: SettingsSection[] = [
         title: "Products & Discounts",
         path: "/settings/products",
         description: "Manage your products, packages, and discount offerings",
+      },
+    ],
+  },
+  {
+    id: "questionnaires",
+    title: "Questionnaires",
+    icon: QuestionnaireIcon,
+    description: "Manage client information questionnaires",
+    subsections: [
+      {
+        id: "questionnaires",
+        title: "Questionnaires",
+        path: "/settings/questionnaires",
+        description: "Create and manage client questionnaires",
       },
     ],
   },
