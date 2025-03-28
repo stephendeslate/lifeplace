@@ -31,7 +31,27 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/common/Layout";
 import { EventProgress, EventStatusChip } from "../../components/events";
+import { NotesTab } from "../../components/notes"; // Import NotesTab
 import { useEvent } from "../../hooks/useEvents";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`event-tabpanel-${index}`}
+      aria-labelledby={`event-tab-${index}`}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  );
+};
 
 export const EventDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -171,201 +191,183 @@ export const EventDetails: React.FC = () => {
             <Tab label="Tasks" />
             <Tab label="Timeline" />
             <Tab label="Files" />
+            <Tab label="Notes" />
             <Tab label="Messages" />
           </Tabs>
 
           {/* Tab content */}
-          <div hidden={activeTab !== 0}>
-            {activeTab === 0 && (
-              <Grid container spacing={3}>
-                {/* Event Details card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Event Details" />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the event details section.
-                        This will include information such as date, time,
-                        location, and other event specifics.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Client Details card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader
-                      title="Client Details"
-                      avatar={<ClientIcon />}
-                    />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the client details section.
-                        This will include client contact information,
-                        preferences, and history.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Invoices card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Invoices" avatar={<InvoiceIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the invoices section. This
-                        will include a list of invoices, their status, and
-                        payment history.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Quotes card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Quotes" avatar={<QuoteIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the quotes section. This will
-                        include a list of quotes provided to the client.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Contracts card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Contracts" avatar={<ContractIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the contracts section. This
-                        will include contract documents, signatures, and related
-                        information.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Emails card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Emails" avatar={<EmailIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the emails section. This will
-                        include a history of email communications with the
-                        client.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Questionnaires card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader
-                      title="Questionnaires"
-                      avatar={<QuestionnaireIcon />}
-                    />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the questionnaires section.
-                        This will include client-completed questionnaires and
-                        preferences.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Files card */}
-                <Grid item xs={12} md={6}>
-                  <Card>
-                    <CardHeader title="Files" avatar={<FilesIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the files section. This will
-                        include a list of files related to the event, such as
-                        photos, documents, etc.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* Notes card */}
-                <Grid item xs={12}>
-                  <Card>
-                    <CardHeader title="Notes" avatar={<NoteIcon />} />
-                    <Divider />
-                    <CardContent>
-                      <Typography variant="body2" color="text.secondary">
-                        This is a placeholder for the notes section. This will
-                        include internal notes and comments about the event.
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
+          <TabPanel value={activeTab} index={0}>
+            <Grid container spacing={3}>
+              {/* Event Details card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Event Details" />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the event details section. This
+                      will include information such as date, time, location, and
+                      other event specifics.
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
-            )}
-          </div>
 
-          <div hidden={activeTab !== 1}>
-            {activeTab === 1 && (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  This is a placeholder for the tasks tab. This section will
-                  show all tasks related to this event, their status, due dates,
-                  and assigned team members.
-                </Typography>
-              </Box>
-            )}
-          </div>
+              {/* Client Details card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Client Details" avatar={<ClientIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the client details section. This
+                      will include client contact information, preferences, and
+                      history.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <div hidden={activeTab !== 2}>
-            {activeTab === 2 && (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  This is a placeholder for the timeline tab. This section will
-                  show a chronological history of all activities related to this
-                  event.
-                </Typography>
-              </Box>
-            )}
-          </div>
+              {/* Invoices card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Invoices" avatar={<InvoiceIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the invoices section. This will
+                      include a list of invoices, their status, and payment
+                      history.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <div hidden={activeTab !== 3}>
-            {activeTab === 3 && (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  This is a placeholder for the files tab. This section will
-                  show all files and documents uploaded for this event,
-                  organized by category.
-                </Typography>
-              </Box>
-            )}
-          </div>
+              {/* Quotes card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Quotes" avatar={<QuoteIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the quotes section. This will
+                      include a list of quotes provided to the client.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-          <div hidden={activeTab !== 4}>
-            {activeTab === 4 && (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  This is a placeholder for the messages tab. This section will
-                  show all communication with the client related to this event.
-                </Typography>
-              </Box>
-            )}
-          </div>
+              {/* Contracts card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Contracts" avatar={<ContractIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the contracts section. This will
+                      include contract documents, signatures, and related
+                      information.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Emails card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Emails" avatar={<EmailIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the emails section. This will
+                      include a history of email communications with the client.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Questionnaires card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader
+                    title="Questionnaires"
+                    avatar={<QuestionnaireIcon />}
+                  />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the questionnaires section. This
+                      will include client-completed questionnaires and
+                      preferences.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Files card */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardHeader title="Files" avatar={<FilesIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the files section. This will
+                      include a list of files related to the event, such as
+                      photos, documents, etc.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Notes card */}
+              <Grid item xs={12}>
+                <Card>
+                  <CardHeader title="Notes" avatar={<NoteIcon />} />
+                  <Divider />
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      This is a placeholder for the notes section. This will
+                      include internal notes and comments about the event.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={1}>
+            <Typography variant="body2" color="text.secondary">
+              This is a placeholder for the tasks tab. This section will show
+              all tasks related to this event, their status, due dates, and
+              assigned team members.
+            </Typography>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={2}>
+            <Typography variant="body2" color="text.secondary">
+              This is a placeholder for the timeline tab. This section will show
+              a chronological history of all activities related to this event.
+            </Typography>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={3}>
+            <Typography variant="body2" color="text.secondary">
+              This is a placeholder for the files tab. This section will show
+              all files and documents uploaded for this event, organized by
+              category.
+            </Typography>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={4}>
+            <NotesTab contentType="event" objectId={eventId} />
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={5}>
+            <Typography variant="body2" color="text.secondary">
+              This is a placeholder for the messages tab. This section will show
+              all communication with the client related to this event.
+            </Typography>
+          </TabPanel>
         </Box>
       </Container>
     </Layout>

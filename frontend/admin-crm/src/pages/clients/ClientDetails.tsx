@@ -26,6 +26,7 @@ import {
   ClientForm,
 } from "../../components/clients";
 import Layout from "../../components/common/Layout";
+import { NotesTab } from "../../components/notes";
 import { useClient } from "../../hooks/useClients";
 import { ClientFormData } from "../../types/clients.types";
 
@@ -207,9 +208,7 @@ const ClientDetails: React.FC = () => {
           </TabPanel>
 
           <TabPanel value={activeTab} index={1}>
-            <Alert severity="info">
-              Notes functionality will be implemented in a future update.
-            </Alert>
+            <NotesTab contentType="client" objectId={clientId} />
           </TabPanel>
 
           <TabPanel value={activeTab} index={2}>
