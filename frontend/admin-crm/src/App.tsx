@@ -17,6 +17,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import useAuth from "./hooks/useAuth";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
+import { ClientDetails, ClientsList } from "./pages/clients";
 import Dashboard from "./pages/dashboard/Dashboard";
 import { EventDetails, EventsList } from "./pages/events";
 import Profile from "./pages/profile/Profile";
@@ -77,6 +78,38 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <EventDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/edit"
+        element={
+          <ProtectedRoute>
+            <EventDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          <ProtectedRoute>
+            <ClientsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients/:id"
+        element={
+          <ProtectedRoute>
+            <ClientDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients/:id/edit"
+        element={
+          <ProtectedRoute>
+            <ClientDetails />
           </ProtectedRoute>
         }
       />

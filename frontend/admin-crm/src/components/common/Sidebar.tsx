@@ -43,9 +43,9 @@ const navItems = [
     title: "Events",
   },
   {
-    href: "/users",
+    href: "/clients",
     icon: PeopleIcon,
-    title: "Users",
+    title: "Clients",
   },
   {
     href: "/reports",
