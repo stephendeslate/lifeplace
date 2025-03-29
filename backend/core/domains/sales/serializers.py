@@ -32,7 +32,8 @@ class QuoteTemplateProductSerializer(serializers.ModelSerializer):
 
 class QuoteTemplateSerializer(serializers.ModelSerializer):
     event_type_name = serializers.CharField(source='event_type.name', read_only=True)
-    products = QuoteTemplateProductSerializer(source='quotetemplateplateproduct_set', many=True, read_only=True)
+    # Fix the products relation - get the right source name
+    products = serializers.SerializerMethodField()
     contract_templates = ContractTemplateSerializer(many=True, read_only=True)
     questionnaires = QuestionnaireSerializer(many=True, read_only=True)
     
@@ -44,6 +45,12 @@ class QuoteTemplateSerializer(serializers.ModelSerializer):
             'contract_templates', 'questionnaires', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_products(self, obj):
+        """Get the products through the through model"""
+        # Use this method to ensure we get the products regardless of the related name
+        template_products = QuoteTemplateProduct.objects.filter(template=obj)
+        return QuoteTemplateProductSerializer(template_products, many=True).data
 
 
 class QuoteLineItemSerializer(serializers.ModelSerializer):

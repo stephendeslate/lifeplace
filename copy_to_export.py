@@ -80,8 +80,8 @@ def export_files(url_paths, export_folder="export"):
 # Example usage
 url_paths = [
     "backend/core/",
+    "backend/core/domains/sales/",
     "backend/core/domains/workflows/models.py",
-    "backend/core/domains/sales/models.py",
     "backend/core/domains/questionnaires/models.py",
     "backend/core/domains/communications/models.py",
     "backend/core/domains/events/models.py",
@@ -94,7 +94,6 @@ url_paths = [
     "backend/core/utils/",
     "frontend/admin-crm/src/components/settings/SettingsLayout.tsx",
     "frontend/admin-crm/src/pages/settings",
-    "frontend/admin-crm/src/pages/settings/workflows/",
     "frontend/admin-crm/src/pages/events/",
     "frontend/admin-crm/src/types/",
     "frontend/admin-crm/src/utils/",

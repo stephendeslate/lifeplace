@@ -106,9 +106,24 @@ class QuoteTemplateService:
         ).exists():
             raise TemplateProductAlreadyExists("This product is already in the template")
         
+        # Remove template from product_data if it exists
+        product_data_copy = product_data.copy()
+        if 'template' in product_data_copy:
+            del product_data_copy['template']
+        
+        # Get the ProductOption instance using the ID
+        from core.domains.products.models import ProductOption
+        try:
+            product_instance = ProductOption.objects.get(pk=product_data_copy['product'])
+        except ProductOption.DoesNotExist:
+            raise ValueError(f"Product with ID {product_data_copy['product']} not found")
+        
+        # Replace the product ID with the actual instance
+        product_data_copy['product'] = product_instance
+        
         product = QuoteTemplateProduct.objects.create(
             template=template,
-            **product_data
+            **product_data_copy
         )
         return product
     

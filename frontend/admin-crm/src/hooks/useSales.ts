@@ -287,6 +287,46 @@ export const useQuoteTemplate = (id?: number) => {
     },
   });
 
+  // Mutation to update contract templates
+  const updateContractTemplatesMutation = useMutation({
+    mutationFn: ({ contractTemplateIds }: { contractTemplateIds: number[] }) =>
+      salesApi.updateQuoteTemplate(id!, {
+        contract_templates: contractTemplateIds,
+      }),
+    onSuccess: () => {
+      toast.success("Contract templates updated successfully");
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["quoteTemplate", id] });
+      }
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail || "Failed to update contract templates";
+      toast.error(errorMessage);
+      console.error("Contract template update error:", error);
+    },
+  });
+
+  // Mutation to update questionnaires
+  const updateQuestionnairesMutation = useMutation({
+    mutationFn: ({ questionnaireIds }: { questionnaireIds: number[] }) =>
+      salesApi.updateQuoteTemplate(id!, {
+        questionnaires: questionnaireIds,
+      }),
+    onSuccess: () => {
+      toast.success("Questionnaires updated successfully");
+      if (id) {
+        queryClient.invalidateQueries({ queryKey: ["quoteTemplate", id] });
+      }
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail || "Failed to update questionnaires";
+      toast.error(errorMessage);
+      console.error("Questionnaire update error:", error);
+    },
+  });
+
   return {
     template,
     isLoading,
@@ -298,6 +338,10 @@ export const useQuoteTemplate = (id?: number) => {
     isUpdatingProduct: updateProductMutation.isPending,
     removeProduct: removeProductMutation.mutate,
     isRemovingProduct: removeProductMutation.isPending,
+    updateContractTemplates: updateContractTemplatesMutation.mutate,
+    isUpdatingContractTemplates: updateContractTemplatesMutation.isPending,
+    updateQuestionnaires: updateQuestionnairesMutation.mutate,
+    isUpdatingQuestionnaires: updateQuestionnairesMutation.isPending,
   };
 };
 

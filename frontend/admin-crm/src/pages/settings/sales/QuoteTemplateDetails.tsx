@@ -75,6 +75,10 @@ const QuoteTemplateDetails: React.FC = () => {
     isUpdatingProduct,
     removeProduct,
     isRemovingProduct,
+    updateContractTemplates,
+    isUpdatingContractTemplates,
+    updateQuestionnaires,
+    isUpdatingQuestionnaires,
   } = useQuoteTemplate(isNewTemplate ? undefined : Number(id));
 
   // Get products for selection
@@ -101,9 +105,10 @@ const QuoteTemplateDetails: React.FC = () => {
   ) => {
     if (!template) return;
 
-    // Call API to update contract templates
-    // This would typically be a separate function in your useQuoteTemplate hook
-    // For now, we'll simply close the dialog
+    updateContractTemplates({
+      contractTemplateIds: selectedTemplateIds,
+    });
+
     setContractTemplateDialogOpen(false);
   };
 
@@ -113,9 +118,10 @@ const QuoteTemplateDetails: React.FC = () => {
   ) => {
     if (!template) return;
 
-    // Call API to update questionnaires
-    // This would typically be a separate function in your useQuoteTemplate hook
-    // For now, we'll simply close the dialog
+    updateQuestionnaires({
+      questionnaireIds: selectedQuestionnaireIds,
+    });
+
     setQuestionnaireDialogOpen(false);
   };
 
@@ -590,7 +596,7 @@ const QuoteTemplateDetails: React.FC = () => {
         currentTemplateIds={
           template?.contract_templates?.map((t) => t.id) || []
         }
-        isSubmitting={false} // Add a state for this in a complete implementation
+        isSubmitting={isUpdatingContractTemplates}
       />
 
       {/* Add Questionnaires Dialog */}
@@ -602,7 +608,7 @@ const QuoteTemplateDetails: React.FC = () => {
         currentQuestionnaireIds={
           template?.questionnaires?.map((q) => q.id) || []
         }
-        isSubmitting={false} // Add a state for this in a complete implementation
+        isSubmitting={isUpdatingQuestionnaires}
       />
     </SettingsLayout>
   );
