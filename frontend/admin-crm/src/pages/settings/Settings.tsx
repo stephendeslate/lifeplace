@@ -92,7 +92,7 @@ const settingsSections = [
   {
     id: "notifications",
     title: "Notifications",
-    description: "Customize notification preferences",
+    description: "Manage notifications and preferences",
     icon: NotificationsIcon,
     link: "/settings/notifications/notification-settings",
     color: "#ef4444",

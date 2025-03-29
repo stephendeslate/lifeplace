@@ -185,9 +185,21 @@ const settingsSections: SettingsSection[] = [
     subsections: [
       {
         id: "notification-settings",
-        title: "Notification Settings",
+        title: "Notification Preferences",
         path: "/settings/notifications/notification-settings",
         description: "Manage notification channels and frequency",
+      },
+      {
+        id: "management",
+        title: "Notification Management",
+        path: "/settings/notifications/management",
+        description: "View and manage notifications",
+      },
+      {
+        id: "templates",
+        title: "Notification Templates",
+        path: "/settings/notifications/templates",
+        description: "Customize notification content templates",
       },
     ],
   },

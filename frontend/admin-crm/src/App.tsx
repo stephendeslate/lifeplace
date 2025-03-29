@@ -36,6 +36,9 @@ import {
   ContractTemplateDetails,
   ContractTemplates,
 } from "./pages/settings/contracts";
+import NotificationManagement from "./pages/settings/notifications/NotificationManagement";
+import NotificationPreferences from "./pages/settings/notifications/NotificationPreferences";
+import NotificationTemplates from "./pages/settings/notifications/NotificationTemplates";
 import Billing from "./pages/settings/payments/Billing";
 import PaymentGateways from "./pages/settings/payments/PaymentGateways";
 import PaymentMethods from "./pages/settings/payments/PaymentMethods";
@@ -343,6 +346,32 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Billing />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Add notification settings routes */}
+      <Route
+        path="/settings/notifications/notification-settings"
+        element={
+          <ProtectedRoute>
+            <NotificationPreferences />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/notifications/management"
+        element={
+          <ProtectedRoute>
+            <NotificationManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/notifications/templates"
+        element={
+          <ProtectedRoute>
+            <NotificationTemplates />
           </ProtectedRoute>
         }
       />

@@ -2,13 +2,11 @@
 import {
   ExitToApp as LogoutIcon,
   Menu as MenuIcon,
-  Notifications as NotificationsIcon,
   Person as PersonIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
   Button,
   Divider,
@@ -18,12 +16,12 @@ import {
   Menu,
   MenuItem,
   Toolbar,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import NotificationPanel from "../notifications/NotificationPanel";
 
 interface HeaderProps {
   onMobileNavOpen: () => void;
@@ -69,13 +67,8 @@ const Header: React.FC<HeaderProps> = ({ onMobileNavOpen }) => {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Tooltip title="Notifications">
-          <IconButton color="inherit" size="large">
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Tooltip>
+        {/* Replaced static badge with NotificationPanel component */}
+        <NotificationPanel />
 
         <Box ml={2}>
           <Button
