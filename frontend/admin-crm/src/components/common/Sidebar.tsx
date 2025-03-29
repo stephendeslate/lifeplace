@@ -2,7 +2,6 @@
 import {
   BarChart as ChartIcon,
   Dashboard as DashboardIcon,
-  Description as DocumentIcon,
   CalendarMonth as EventsIcon,
   Payment as PaymentsIcon,
   People as PeopleIcon,
@@ -51,11 +50,6 @@ const navItems = [
     href: "/reports",
     icon: ChartIcon,
     title: "Reports",
-  },
-  {
-    href: "/documents",
-    icon: DocumentIcon,
-    title: "Documents",
   },
   {
     href: "/payments",
