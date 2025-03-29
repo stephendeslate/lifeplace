@@ -18,12 +18,23 @@ import useAuth from "./hooks/useAuth";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
 import { ClientDetails, ClientsList } from "./pages/clients";
+import { ContractDetails } from "./pages/contracts";
 import Dashboard from "./pages/dashboard/Dashboard";
 import { EventDetails, EventsList } from "./pages/events";
 import Profile from "./pages/profile/Profile";
+import {
+  QuoteDetails,
+  QuotesList,
+  QuoteTemplateDetails,
+  QuoteTemplates,
+} from "./pages/sales";
 import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
+import {
+  ContractTemplateDetails,
+  ContractTemplates,
+} from "./pages/settings/contracts";
 import Products from "./pages/settings/products/Products";
 import {
   QuestionnaireDetails,
@@ -117,6 +128,15 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      {/* Contract routes */}
+      <Route
+        path="/contracts/:id"
+        element={
+          <ProtectedRoute>
+            <ContractDetails />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/profile"
         element={
@@ -188,6 +208,87 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <QuestionnaireDetails />
+          </ProtectedRoute>
+        }
+      />
+      {/* Settings routes for contracts */}
+      <Route
+        path="/settings/contracts/templates"
+        element={
+          <ProtectedRoute>
+            <ContractTemplates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/contracts/templates/:id"
+        element={
+          <ProtectedRoute>
+            <ContractTemplateDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/contracts/templates/:id/edit"
+        element={
+          <ProtectedRoute>
+            <ContractTemplateDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/sales/quote-templates"
+        element={
+          <ProtectedRoute>
+            <QuoteTemplates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/sales/quote-templates/:id"
+        element={
+          <ProtectedRoute>
+            <QuoteTemplateDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/sales/quote-templates/:id/edit"
+        element={
+          <ProtectedRoute>
+            <QuoteTemplateDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sales/quotes"
+        element={
+          <ProtectedRoute>
+            <QuotesList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sales/events/:eventId/quotes"
+        element={
+          <ProtectedRoute>
+            <QuotesList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sales/quotes/:id"
+        element={
+          <ProtectedRoute>
+            <QuoteDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sales/quotes/:id/edit"
+        element={
+          <ProtectedRoute>
+            <QuoteDetails />
           </ProtectedRoute>
         }
       />

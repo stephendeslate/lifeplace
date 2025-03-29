@@ -31,7 +31,8 @@ import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../components/common/Layout";
 import { EventProgress, EventStatusChip } from "../../components/events";
-import { NotesTab } from "../../components/notes"; // Import NotesTab
+import EventContracts from "../../components/events/EventContracts";
+import { NotesTab } from "../../components/notes";
 import { useEvent } from "../../hooks/useEvents";
 
 interface TabPanelProps {
@@ -69,6 +70,14 @@ export const EventDetails: React.FC = () => {
   // Handle navigation back to events list
   const handleBackToList = () => {
     navigate("/events");
+  };
+
+  const handleViewQuotes = () => {
+    navigate(`/sales/events/${eventId}/quotes`);
+  };
+
+  const handleCreateQuote = () => {
+    navigate(`/sales/quotes/new?eventId=${eventId}`);
   };
 
   if (isLoading) {
@@ -192,6 +201,8 @@ export const EventDetails: React.FC = () => {
             <Tab label="Timeline" />
             <Tab label="Files" />
             <Tab label="Notes" />
+            <Tab label="Contracts" />
+            <Tab label="Quotes" />
             <Tab label="Messages" />
           </Tabs>
 
@@ -363,6 +374,41 @@ export const EventDetails: React.FC = () => {
           </TabPanel>
 
           <TabPanel value={activeTab} index={5}>
+            <EventContracts event={event} canEdit={true} />
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={6}>
+            <Box
+              sx={{
+                mb: 3,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                startIcon={<QuoteIcon />}
+                onClick={handleViewQuotes}
+              >
+                View All Quotes
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<QuoteIcon />}
+                onClick={handleCreateQuote}
+              >
+                Create New Quote
+              </Button>
+            </Box>
+            <Alert severity="info">
+              This tab will display quotes and proposals for this event. You can
+              view all quotes or create a new one for this event.
+            </Alert>
+          </TabPanel>
+
+          <TabPanel value={activeTab} index={7}>
             <Typography variant="body2" color="text.secondary">
               This is a placeholder for the messages tab. This section will show
               all communication with the client related to this event.

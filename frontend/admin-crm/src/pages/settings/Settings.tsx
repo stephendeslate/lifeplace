@@ -1,10 +1,12 @@
 // frontend/admin-crm/src/pages/settings/Settings.tsx
 import {
   AccountCircle as AccountIcon,
+  Description as ContractIcon,
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
   ShoppingCart as ProductsIcon,
   QuestionAnswer as QuestionnaireIcon,
+  RequestQuote as SalesIcon,
   Description as TemplateIcon,
   Assignment as WorkflowsIcon,
 } from "@mui/icons-material";
@@ -54,6 +56,22 @@ const settingsSections = [
     icon: QuestionnaireIcon,
     link: "/settings/questionnaires",
     color: "#8B5CF6",
+  },
+  {
+    id: "contracts",
+    title: "Contracts",
+    description: "Manage legal contracts and templates",
+    icon: ContractIcon,
+    link: "/settings/contracts/templates",
+    color: "#2196f3",
+  },
+  {
+    id: "sales",
+    title: "Sales",
+    description: "Manage quotes and proposal templates",
+    icon: SalesIcon,
+    link: "/settings/sales/quote-templates",
+    color: "#ef6c00",
   },
   {
     id: "workflows",

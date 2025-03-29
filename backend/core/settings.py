@@ -58,6 +58,9 @@ INSTALLED_APPS = [
     'core.domains.workflows.apps.WorkflowsConfig',  # Workflows domain
     'core.domains.questionnaires.apps.QuestionnairesConfig',  # Questionnaires domain
     'core.domains.notes.apps.NotesConfig', # Notes domain
+    'core.domains.contracts.apps.ContractsConfig', # Contracts domain
+    'core.domains.sales.apps.SalesConfig', # Sales domain
+    'core.domains.payments.apps.PaymentsConfig', # Payments domain
     
     # Django built-in apps
     'django.contrib.admin',
