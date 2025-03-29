@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/contracts/', include('core.domains.contracts.urls')),
     path('api/sales/', include('core.domains.sales.urls')),
     path('api/payments/', include('core.domains.payments.urls')),
+    path('api/notifications/', include('core.domains.notifications.urls')),
     # Add more domain URLs here
 ]
 

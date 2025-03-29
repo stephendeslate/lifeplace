@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'core.domains.contracts.apps.ContractsConfig', # Contracts domain
     'core.domains.sales.apps.SalesConfig', # Sales domain
     'core.domains.payments.apps.PaymentsConfig', # Payments domain
+    'core.domains.notifications.apps.NotificationsConfig', # Notifications domain
     
     # Django built-in apps
     'django.contrib.admin',
