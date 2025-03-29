@@ -155,7 +155,19 @@ const settingsSections: SettingsSection[] = [
         id: "payment-methods",
         title: "Payment Methods",
         path: "/settings/payments/payment-methods",
-        description: "Manage payment providers",
+        description: "Manage payment methods and providers",
+      },
+      {
+        id: "payment-gateways",
+        title: "Payment Gateways",
+        path: "/settings/payments/payment-gateways",
+        description: "Configure payment processing gateways",
+      },
+      {
+        id: "tax-rates",
+        title: "Tax Rates",
+        path: "/settings/payments/tax-rates",
+        description: "Manage tax rates and regions",
       },
       {
         id: "billing",

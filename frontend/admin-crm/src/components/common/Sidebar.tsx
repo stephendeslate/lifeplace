@@ -4,7 +4,7 @@ import {
   Dashboard as DashboardIcon,
   Description as DocumentIcon,
   CalendarMonth as EventsIcon,
-  Mail as MailIcon,
+  Payment as PaymentsIcon,
   People as PeopleIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
@@ -58,9 +58,9 @@ const navItems = [
     title: "Documents",
   },
   {
-    href: "/messages",
-    icon: MailIcon,
-    title: "Messages",
+    href: "/payments",
+    icon: PaymentsIcon,
+    title: "Payments",
   },
   {
     href: "/settings",

@@ -21,6 +21,7 @@ import { ClientDetails, ClientsList } from "./pages/clients";
 import { ContractDetails } from "./pages/contracts";
 import Dashboard from "./pages/dashboard/Dashboard";
 import { EventDetails, EventsList } from "./pages/events";
+import { PaymentDetails, PaymentsList } from "./pages/payments";
 import Profile from "./pages/profile/Profile";
 import {
   QuoteDetails,
@@ -35,6 +36,10 @@ import {
   ContractTemplateDetails,
   ContractTemplates,
 } from "./pages/settings/contracts";
+import Billing from "./pages/settings/payments/Billing";
+import PaymentGateways from "./pages/settings/payments/PaymentGateways";
+import PaymentMethods from "./pages/settings/payments/PaymentMethods";
+import TaxRates from "./pages/settings/payments/TaxRates";
 import Products from "./pages/settings/products/Products";
 import {
   QuestionnaireDetails,
@@ -125,6 +130,22 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <ClientDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments"
+        element={
+          <ProtectedRoute>
+            <PaymentsList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payments/:id"
+        element={
+          <ProtectedRoute>
+            <PaymentDetails />
           </ProtectedRoute>
         }
       />
@@ -260,6 +281,7 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/sales/quotes"
         element={
@@ -289,6 +311,38 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <QuoteDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/payments/payment-methods"
+        element={
+          <ProtectedRoute>
+            <PaymentMethods />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/payments/payment-gateways"
+        element={
+          <ProtectedRoute>
+            <PaymentGateways />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/payments/tax-rates"
+        element={
+          <ProtectedRoute>
+            <TaxRates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/payments/billing"
+        element={
+          <ProtectedRoute>
+            <Billing />
           </ProtectedRoute>
         }
       />
