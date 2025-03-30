@@ -1,6 +1,6 @@
 # backend/core/domains/clients/views.py
 from core.utils.permissions import IsAdmin
-from django.db import transaction
+from django.db import models, transaction
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -33,21 +33,25 @@ class ClientViewSet(viewsets.ModelViewSet):
         if is_active is not None:
             is_active = is_active.lower() == 'true'
             
+        # Get base queryset first
+        queryset = ClientService.get_all_clients(
+            search_query=search_query,
+            is_active=is_active
+    )
+            
         # has_account is a custom filter - if true, get clients with passwords set
         # if false, get clients without passwords (imported clients)
         if has_account is not None:
             has_account = has_account.lower() == 'true'
-            base_queryset = ClientService.get_all_clients(
-                search_query=search_query,
-                is_active=is_active
-            )
             
             if has_account:
-                # Find clients with non-empty passwords (they have accounts)
-                return base_queryset.exclude(password='')
+                # Return clients with valid passwords
+                client_ids = [client.id for client in queryset if client.has_usable_password()]
+                return queryset.filter(id__in=client_ids)
             else:
-                # Find clients with empty passwords (no accounts yet)
-                return base_queryset.filter(password='')
+                # Return clients without valid passwords
+                client_ids = [client.id for client in queryset if not client.has_usable_password()]
+                return queryset.filter(id__in=client_ids)
         
         return ClientService.get_all_clients(
             search_query=search_query,

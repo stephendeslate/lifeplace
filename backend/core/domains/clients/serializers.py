@@ -15,14 +15,19 @@ class ClientProfileSerializer(serializers.Serializer):
 class ClientListSerializer(serializers.ModelSerializer):
     """Serializer for client list view"""
     profile = ClientProfileSerializer(required=False)
+    has_account = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 
-            'profile', 'date_joined', 'is_active'
+            'profile', 'date_joined', 'is_active', 'has_account'
         ]
-        read_only_fields = ['id', 'date_joined', 'email']
+        read_only_fields = ['id', 'date_joined', 'email', 'has_account']
+        
+    def get_has_account(self, obj):
+        # Check if the user has a valid password set
+        return bool(obj.password and obj.password != '')
 
 
 class ClientDetailSerializer(serializers.ModelSerializer):
