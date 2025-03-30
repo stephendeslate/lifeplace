@@ -10,4 +10,4 @@ class NotificationsConfig(AppConfig):
     
     def ready(self):
         # Import signal handlers when Django starts
-        import core.domains.notifications.signals  # noqa
+        import core.domains.notifications.signals

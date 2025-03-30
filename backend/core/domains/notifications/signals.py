@@ -11,11 +11,35 @@ from .services import NotificationService
 
 User = get_user_model()
 
+
 @receiver(post_save, sender=User)
 def create_notification_preferences(sender, instance, created, **kwargs):
     """Create default notification preferences for new users"""
     if created:
         NotificationPreference.objects.create(user=instance)
+        
+@receiver(post_save, sender=User)
+def user_notifications(sender, instance, created, **kwargs):
+    """Generate notifications for user changes"""
+    # Only process for newly created users with the CLIENT role
+    if created and instance.role == "CLIENT":
+        # Log for debugging
+        print(f"CLIENT created signal fired for user: {instance.id} - {instance.email}")
+        
+        # Notify admins about new client
+        for admin in User.objects.filter(is_staff=True, is_active=True):
+            NotificationService.create_notification(
+                recipient=admin,
+                notification_type_code='CLIENT_CREATED',
+                context={
+                    'client_id': instance.id,
+                    'client_name': f"{instance.first_name} {instance.last_name}",
+                    'action_url': f'/clients/{instance.id}',
+                    'content_type': 'user',
+                    'object_id': instance.id
+                },
+                email=True
+            )
 
 # Event-related notification signals
 @receiver(post_save, sender=Event)
