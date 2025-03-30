@@ -32,6 +32,7 @@ import {
 import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
+import { BookingFlows, EventTypes } from "./pages/settings/bookingflow";
 import {
   ContractTemplateDetails,
   ContractTemplates,
@@ -372,6 +373,22 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <NotificationTemplates />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/bookingflow/flows"
+        element={
+          <ProtectedRoute>
+            <BookingFlows />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/bookingflow/event-types"
+        element={
+          <ProtectedRoute>
+            <EventTypes />
           </ProtectedRoute>
         }
       />

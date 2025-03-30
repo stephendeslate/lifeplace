@@ -1,6 +1,7 @@
 // frontend/admin-crm/src/components/settings/SettingsLayout.tsx
 import {
   AccountCircle as AccountIcon,
+  BookOnline as BookingFlowIcon,
   ChevronRight as ChevronRightIcon,
   Description as ContractIcon,
   Home as HomeIcon,
@@ -142,6 +143,27 @@ const settingsSections: SettingsSection[] = [
         title: "Workflow Templates",
         path: "/settings/workflows",
         description: "Configure workflow templates for events",
+      },
+    ],
+  },
+  // Added new Booking Flow section
+  {
+    id: "bookingflow",
+    title: "Booking Flow",
+    icon: BookingFlowIcon,
+    description: "Configure client booking process and event types",
+    subsections: [
+      {
+        id: "flows",
+        title: "Booking Flows",
+        path: "/settings/bookingflow/flows",
+        description: "Manage booking flows for your events",
+      },
+      {
+        id: "event-types",
+        title: "Event Types",
+        path: "/settings/bookingflow/event-types",
+        description: "Manage event types for your business",
       },
     ],
   },

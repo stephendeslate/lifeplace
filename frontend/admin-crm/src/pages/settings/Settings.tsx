@@ -1,6 +1,7 @@
 // frontend/admin-crm/src/pages/settings/Settings.tsx
 import {
   AccountCircle as AccountIcon,
+  BookOnline as BookingFlowIcon,
   Description as ContractIcon,
   Notifications as NotificationsIcon,
   Payment as PaymentIcon,
@@ -80,6 +81,15 @@ const settingsSections = [
     icon: WorkflowsIcon,
     link: "/settings/workflows",
     color: "#f59e0b",
+  },
+  // Added new Booking Flow section
+  {
+    id: "bookingflow",
+    title: "Booking Flow",
+    description: "Configure client booking process and event types",
+    icon: BookingFlowIcon,
+    link: "/settings/bookingflow/flows",
+    color: "#3b82f6", // Blue color
   },
   {
     id: "payments",

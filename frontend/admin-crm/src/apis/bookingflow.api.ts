@@ -1,24 +1,37 @@
 // frontend/admin-crm/src/apis/bookingflow.api.ts
 import {
-  BookingFlowConfig,
-  BookingFlowConfigFormData,
-  BookingFlowConfigResponse,
-  BookingFlowItem,
-  BookingFlowItemFormData,
-  BookingFlowItemResponse,
-  ReorderItemsRequest,
+  BookingFlow,
+  BookingFlowFormData,
+  BookingFlowResponse,
+  BookingStep,
+  BookingStepFormData,
+  BookingStepResponse,
+  ProductStepItem,
+  ProductStepItemFormData,
+  ReorderProductItemsRequest,
+  ReorderStepsRequest,
 } from "../types/bookingflow.types";
+import { EventType } from "../types/events.types";
 import api from "../utils/api";
+
+// Add this interface for the paginated event types response
+interface EventTypeResponse {
+  count: number;
+  results: EventType[];
+  next: string | null;
+  previous: string | null;
+}
 
 export const bookingFlowApi = {
   /**
-   * Get all booking flow configurations with optional filtering
+   * Get all booking flows with optional filtering
    */
-  getConfigs: async (
+  getBookingFlows: async (
     page = 1,
     eventTypeId?: number,
-    isActive?: boolean
-  ): Promise<BookingFlowConfigResponse> => {
+    isActive?: boolean,
+    search?: string
+  ): Promise<BookingFlowResponse> => {
     const params: Record<string, any> = { page };
 
     if (eventTypeId) {
@@ -29,147 +42,296 @@ export const bookingFlowApi = {
       params.is_active = isActive;
     }
 
-    const response = await api.get<BookingFlowConfigResponse>(
-      "/bookingflow/configs/",
-      { params }
-    );
+    if (search) {
+      params.search = search;
+    }
+
+    const response = await api.get<BookingFlowResponse>("/bookingflow/flows/", {
+      params,
+    });
     return response.data;
   },
 
   /**
-   * Get active configuration for an event type
+   * Get active booking flows
    */
-  getConfigForEventType: async (
-    eventTypeId: number
-  ): Promise<BookingFlowConfig> => {
-    const response = await api.get<BookingFlowConfig>(
-      "/bookingflow/configs/for_event_type/",
+  getActiveBookingFlows: async (page = 1): Promise<BookingFlowResponse> => {
+    const response = await api.get<BookingFlowResponse>(
+      "/bookingflow/flows/active/",
       {
-        params: { event_type: eventTypeId },
+        params: { page },
       }
     );
     return response.data;
   },
 
   /**
-   * Get configuration by ID
+   * Get booking flow by ID
    */
-  getConfigById: async (id: number): Promise<BookingFlowConfig> => {
-    const response = await api.get<BookingFlowConfig>(
-      `/bookingflow/configs/${id}/`
+  getBookingFlowById: async (id: number): Promise<BookingFlow> => {
+    const response = await api.get<BookingFlow>(`/bookingflow/flows/${id}/`);
+    return response.data;
+  },
+
+  /**
+   * Create a new booking flow
+   */
+  createBookingFlow: async (
+    flowData: BookingFlowFormData
+  ): Promise<BookingFlow> => {
+    const response = await api.post<BookingFlow>(
+      "/bookingflow/flows/",
+      flowData
     );
     return response.data;
   },
 
   /**
-   * Create a new booking flow configuration
+   * Update an existing booking flow
    */
-  createConfig: async (
-    configData: BookingFlowConfigFormData
-  ): Promise<BookingFlowConfig> => {
-    const response = await api.post<BookingFlowConfig>(
-      "/bookingflow/configs/",
-      configData
-    );
-    return response.data;
-  },
-
-  /**
-   * Update an existing booking flow configuration
-   */
-  updateConfig: async (
+  updateBookingFlow: async (
     id: number,
-    configData: Partial<BookingFlowConfigFormData>
-  ): Promise<BookingFlowConfig> => {
-    const response = await api.patch<BookingFlowConfig>(
-      `/bookingflow/configs/${id}/`,
-      configData
+    flowData: Partial<BookingFlowFormData>
+  ): Promise<BookingFlow> => {
+    const response = await api.patch<BookingFlow>(
+      `/bookingflow/flows/${id}/`,
+      flowData
     );
     return response.data;
   },
 
   /**
-   * Delete a booking flow configuration
+   * Delete a booking flow
    */
-  deleteConfig: async (id: number): Promise<void> => {
-    await api.delete(`/bookingflow/configs/${id}/`);
+  deleteBookingFlow: async (id: number): Promise<void> => {
+    await api.delete(`/bookingflow/flows/${id}/`);
   },
 
   /**
-   * Get all booking flow items for a configuration
+   * Get steps for a booking flow
    */
-  getItems: async (
-    configId: number,
-    itemType?: string
-  ): Promise<BookingFlowItemResponse> => {
-    const params: Record<string, any> = { config: configId };
+  getStepsForFlow: async (flowId: number): Promise<BookingStep[]> => {
+    const response = await api.get<BookingStep[]>(
+      `/bookingflow/flows/${flowId}/steps/`
+    );
+    return response.data;
+  },
 
-    if (itemType) {
-      params.type = itemType;
+  /**
+   * Get all steps with optional filtering
+   */
+  getBookingSteps: async (
+    page = 1,
+    flowId?: number
+  ): Promise<BookingStepResponse> => {
+    const params: Record<string, any> = { page };
+
+    if (flowId) {
+      params.booking_flow = flowId;
     }
 
-    const response = await api.get<BookingFlowItemResponse>(
-      "/bookingflow/items/",
-      { params }
+    const response = await api.get<BookingStepResponse>("/bookingflow/steps/", {
+      params,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get booking step by ID
+   */
+  getBookingStepById: async (id: number): Promise<BookingStep> => {
+    const response = await api.get<BookingStep>(`/bookingflow/steps/${id}/`);
+    return response.data;
+  },
+
+  /**
+   * Create a new booking step
+   */
+  createBookingStep: async (
+    stepData: BookingStepFormData
+  ): Promise<BookingStep> => {
+    const response = await api.post<BookingStep>(
+      "/bookingflow/steps/",
+      stepData
     );
     return response.data;
   },
 
   /**
-   * Get booking flow item by ID
+   * Update an existing booking step
    */
-  getItemById: async (id: number): Promise<BookingFlowItem> => {
-    const response = await api.get<BookingFlowItem>(
-      `/bookingflow/items/${id}/`
-    );
-    return response.data;
-  },
-
-  /**
-   * Create a new booking flow item
-   */
-  createItem: async (
-    itemData: BookingFlowItemFormData
-  ): Promise<BookingFlowItem> => {
-    const response = await api.post<BookingFlowItem>(
-      "/bookingflow/items/",
-      itemData
-    );
-    return response.data;
-  },
-
-  /**
-   * Update an existing booking flow item
-   */
-  updateItem: async (
+  updateBookingStep: async (
     id: number,
-    itemData: Partial<BookingFlowItemFormData>
-  ): Promise<BookingFlowItem> => {
-    const response = await api.patch<BookingFlowItem>(
-      `/bookingflow/items/${id}/`,
+    stepData: Partial<BookingStepFormData>
+  ): Promise<BookingStep> => {
+    const response = await api.patch<BookingStep>(
+      `/bookingflow/steps/${id}/`,
+      stepData
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete a booking step
+   */
+  deleteBookingStep: async (id: number): Promise<void> => {
+    await api.delete(`/bookingflow/steps/${id}/`);
+  },
+
+  /**
+   * Reorder steps within a booking flow
+   */
+  reorderSteps: async (data: ReorderStepsRequest): Promise<BookingStep[]> => {
+    const response = await api.post<BookingStep[]>(
+      "/bookingflow/steps/reorder/",
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Get product items for a configuration
+   */
+  getProductItems: async (configId: number): Promise<ProductStepItem[]> => {
+    const response = await api.get<ProductStepItem[]>(
+      "/bookingflow/product-items/by_config/",
+      {
+        params: { config_id: configId },
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Create a new product item
+   */
+  createProductItem: async (
+    configId: number,
+    itemData: ProductStepItemFormData
+  ): Promise<ProductStepItem> => {
+    const data = {
+      ...itemData,
+      config: configId,
+    };
+    const response = await api.post<ProductStepItem>(
+      "/bookingflow/product-items/",
+      data
+    );
+    return response.data;
+  },
+
+  /**
+   * Update an existing product item
+   */
+  updateProductItem: async (
+    id: number,
+    itemData: Partial<ProductStepItemFormData>
+  ): Promise<ProductStepItem> => {
+    const response = await api.patch<ProductStepItem>(
+      `/bookingflow/product-items/${id}/`,
       itemData
     );
     return response.data;
   },
 
   /**
-   * Delete a booking flow item
+   * Delete a product item
    */
-  deleteItem: async (id: number): Promise<void> => {
-    await api.delete(`/bookingflow/items/${id}/`);
+  deleteProductItem: async (id: number): Promise<void> => {
+    await api.delete(`/bookingflow/product-items/${id}/`);
   },
 
   /**
-   * Reorder booking flow items
+   * Reorder product items within a configuration
    */
-  reorderItems: async (
-    reorderData: ReorderItemsRequest
-  ): Promise<BookingFlowItem[]> => {
-    const response = await api.post<BookingFlowItem[]>(
-      "/bookingflow/items/reorder/",
-      reorderData
+  reorderProductItems: async (
+    data: ReorderProductItemsRequest
+  ): Promise<ProductStepItem[]> => {
+    const response = await api.post<ProductStepItem[]>(
+      "/bookingflow/product-items/reorder/",
+      data
     );
     return response.data;
+  },
+
+  /**
+   * Get all event types with optional filtering
+   */
+  getEventTypes: async (
+    page = 1,
+    isActive?: boolean,
+    search?: string
+  ): Promise<EventTypeResponse> => {
+    // Updated return type
+    const params: Record<string, any> = { page };
+
+    if (isActive !== undefined) {
+      params.is_active = isActive;
+    }
+
+    if (search) {
+      params.search = search;
+    }
+
+    const response = await api.get<EventTypeResponse>( // Updated generic type
+      "/bookingflow/event-types/",
+      {
+        params,
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Get active event types
+   */
+  getActiveEventTypes: async (): Promise<EventType[]> => {
+    const response = await api.get<EventType[]>(
+      "/bookingflow/event-types/active/"
+    );
+    return response.data;
+  },
+
+  /**
+   * Get event type by ID
+   */
+  getEventTypeById: async (id: number): Promise<EventType> => {
+    const response = await api.get<EventType>(
+      `/bookingflow/event-types/${id}/`
+    );
+    return response.data;
+  },
+
+  /**
+   * Create a new event type
+   */
+  createEventType: async (eventTypeData: any): Promise<EventType> => {
+    const response = await api.post<EventType>(
+      "/bookingflow/event-types/",
+      eventTypeData
+    );
+    return response.data;
+  },
+
+  /**
+   * Update an existing event type
+   */
+  updateEventType: async (
+    id: number,
+    eventTypeData: any
+  ): Promise<EventType> => {
+    const response = await api.patch<EventType>(
+      `/bookingflow/event-types/${id}/`,
+      eventTypeData
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete an event type
+   */
+  deleteEventType: async (id: number): Promise<void> => {
+    await api.delete(`/bookingflow/event-types/${id}/`);
   },
 };
 
