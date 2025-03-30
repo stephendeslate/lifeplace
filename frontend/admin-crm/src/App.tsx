@@ -20,7 +20,7 @@ import Login from "./pages/auth/Login";
 import { ClientDetails, ClientsList } from "./pages/clients";
 import { ContractDetails } from "./pages/contracts";
 import Dashboard from "./pages/dashboard/Dashboard";
-import { EventDetails, EventsList } from "./pages/events";
+import { EventDetails, EventsCalendar, EventsList } from "./pages/events";
 import { PaymentDetails, PaymentsList } from "./pages/payments";
 import Profile from "./pages/profile/Profile";
 import {
@@ -110,6 +110,14 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <EventDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/calendar"
+        element={
+          <ProtectedRoute>
+            <EventsCalendar />
           </ProtectedRoute>
         }
       />

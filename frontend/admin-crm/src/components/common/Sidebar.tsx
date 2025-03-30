@@ -1,5 +1,6 @@
 // frontend/admin-crm/src/components/common/Sidebar.tsx
 import {
+  CalendarToday as CalendarIcon,
   BarChart as ChartIcon,
   Dashboard as DashboardIcon,
   CalendarMonth as EventsIcon,
@@ -40,6 +41,11 @@ const navItems = [
     href: "/events",
     icon: EventsIcon,
     title: "Events",
+  },
+  {
+    href: "/events/calendar",
+    icon: CalendarIcon,
+    title: "Calendar",
   },
   {
     href: "/clients",
@@ -83,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onMobileClose, openMobile }) => {
     >
       <Box
         sx={{
-          alignItems: "center",
+          alignItems: "flex-start",
           display: "flex",
           flexDirection: "column",
           p: 2,
