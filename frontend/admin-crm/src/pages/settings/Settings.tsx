@@ -35,9 +35,9 @@ const settingsSections = [
     color: "#0a84ff",
   },
   {
-    id: "templates",
-    title: "Templates",
-    description: "Manage email and document templates",
+    id: "email-templates",
+    title: "Email Templates",
+    description: "Manage email templates",
     icon: TemplateIcon,
     link: "/settings/templates/email-templates",
     color: "#10b981",

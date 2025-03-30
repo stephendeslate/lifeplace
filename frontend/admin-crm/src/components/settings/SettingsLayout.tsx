@@ -63,10 +63,10 @@ const settingsSections: SettingsSection[] = [
     ],
   },
   {
-    id: "templates",
-    title: "Templates",
+    id: "email-templates",
+    title: "Email Templates",
     icon: TemplateIcon,
-    description: "Manage email and document templates",
+    description: "Manage email templates",
     subsections: [
       {
         id: "email-templates",
