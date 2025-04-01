@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/payments/', include('core.domains.payments.urls')),
     path('api/notifications/', include('core.domains.notifications.urls')),
     path('api/bookingflow/', include('core.domains.bookingflow.urls')),
+    path('api/dashboard/', include('core.domains.dashboard.urls')),
     # Add more domain URLs here
 ]
 

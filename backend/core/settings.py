@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'core.domains.payments.apps.PaymentsConfig', # Payments domain
     'core.domains.notifications.apps.NotificationsConfig', # Notifications domain
     'core.domains.bookingflow.apps.BookingFlowConfig', # Booking flow domain
+    'core.domains.dashboard.apps.DashboardConfig', # Dashboard domain
     
     # Django built-in apps
     'django.contrib.admin',

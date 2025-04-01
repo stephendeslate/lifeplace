@@ -76,3 +76,4 @@ docker-compose.override.yml
 *.swo
 .DS_Store
 export
+project_core
