@@ -7,6 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import certifi
+import dj_database_url
 import environ
 
 # Build paths inside the project
@@ -14,24 +15,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Set up environment variables
 env = environ.Env(
-    DEBUG=(bool, True),
-    SECRET_KEY=(str, 'django-insecure-9awppc7&+9#51bifr@m(mo#($3+5rqo)*@x^315jya%m*5r9us'),
-    ENVIRONMENT=(str, 'development'),
-    ADMIN_FRONTEND_URL=(str, 'http://localhost:3001'),
-    CLIENT_FRONTEND_URL=(str, 'http://localhost:3000'),
-    CORS_ALLOWED_ORIGINS=(list, ['http://localhost:3000', 'http://localhost:3001']),
+    DEBUG=(bool, False),  # Default to False for production
+    SECRET_KEY=(str, 'django-insecure-key-please-change-in-production'),
+    ENVIRONMENT=(str, 'production'),  # Default to production
+    ADMIN_DOMAIN=(str, 'lifeplace.fly.dev'),  # Default domain for admin
+    CLIENT_DOMAIN=(str, 'client.lifeplace.fly.dev'), # Default domain for client
+    ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1', '.fly.dev']),  # Default allowed hosts
+    CSRF_TRUSTED_ORIGINS=(list, ['https://lifeplace.fly.dev']),  # Default CSRF trusted origins
     DB_NAME=(str, 'lifeplace'),
     DB_USER=(str, 'postgres'),
     DB_PWD=(str, 'postgres'),
     DB_HOST=(str, 'localhost'),
     DB_PORT=(str, '5432'),
+    DATABASE_URL=(str, ''),  # For Fly.io database
     EMAIL_HOST_USER=(str, ''),
     EMAIL_HOST_PASSWORD=(str, ''),
     REDIS_URL=(str, 'redis://localhost:6379/0'),
     CELERY_BROKER_URL=(str, 'redis://localhost:6379/0'),
 )
 
-# Take environment variables from .env file
+# Take environment variables from .env file if it exists
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -42,10 +45,15 @@ DEBUG = env('DEBUG')
 
 ENVIRONMENT = env('ENVIRONMENT')
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-]
+# Admin domain setting
+ADMIN_DOMAIN = env('ADMIN_DOMAIN')
+
+# Client domain setting
+CLIENT_DOMAIN = env('CLIENT_DOMAIN')
+
+# Allowed hosts and CSRF trusted origins
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
 
 # Application definition
 INSTALLED_APPS = [
@@ -78,24 +86,26 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'whitenoise.runserver_nostatic',  # Add WhiteNoise for development server
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.DomainRoutingMiddleware',  # Our custom domain middleware
 ]
 
 # CORS settings based on environment
 if ENVIRONMENT == 'production':
     # Production settings
-    CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS')
+    CORS_ALLOWED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')  # Use the same list as CSRF_TRUSTED_ORIGINS
     CORS_ALLOW_CREDENTIALS = True
     CORS_ALLOW_METHODS = [
         'DELETE',
@@ -126,7 +136,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'static')],  # Add the static directory to find templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -141,21 +151,32 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME"),
-        "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PWD"),
-        "HOST": env("DB_HOST"),
-        "PORT": env("DB_PORT"),
-        "TEST": {
-            "NAME": "test_" + env.str("DB_NAME", default="default"),
-            "SERIALIZE": False,
-        },
+# Database configuration
+# Check for DATABASE_URL environment variable (used by Fly.io)
+if env('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=env('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Fall back to manual configuration
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PWD"),
+            "HOST": env("DB_HOST"),
+            "PORT": env("DB_PORT"),
+            "TEST": {
+                "NAME": "test_" + env.str("DB_NAME", default="default"),
+                "SERIALIZE": False,
+            },
+        }
+    }
 
 # Custom User model
 AUTH_USER_MODEL = 'users.User'
@@ -228,9 +249,9 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_SSL_CERTFILE = certifi.where()  # Use certifi's certificate store
 
-# Frontend URLs for invitation links
-ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL')
-CLIENT_FRONTEND_URL = env('CLIENT_FRONTEND_URL')
+# Frontend URLs for invitation links - update for production
+ADMIN_FRONTEND_URL = f"https://{ADMIN_DOMAIN}" if ENVIRONMENT == 'production' else env('ADMIN_FRONTEND_URL')
+CLIENT_FRONTEND_URL = f"https://{CLIENT_DOMAIN}" if ENVIRONMENT == 'production' else env('CLIENT_FRONTEND_URL')
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
@@ -240,10 +261,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Media files
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Enable WhiteNoise's GZip compression
@@ -252,9 +276,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Logging configuration
-
-
 # Celery settings
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = env('REDIS_URL')
@@ -262,3 +283,17 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Production security settings
+if ENVIRONMENT == 'production':
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # SECURE_SSL_REDIRECT = True  # Commented out - Fly.io handles HTTPS redirects
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    X_FRAME_OPTIONS = 'DENY'
+    
+    # Properly handle proxy headers
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True

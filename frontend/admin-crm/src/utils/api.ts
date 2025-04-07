@@ -7,9 +7,21 @@ import {
   setTokens,
 } from "./storage";
 
+// Get base URL based on environment
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === "production") {
+    // In production, use relative URL
+    // This works since both API and frontend are on the same domain
+    return "/api";
+  }
+
+  // In development, use the environment variable or default to localhost
+  return process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+};
+
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:8000/api",
+  baseURL: getBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -47,13 +59,14 @@ api.interceptors.response.use(
           return Promise.reject(error);
         }
 
+        // Get the appropriate API URL for token refresh
+        // This needs to be the same as the baseURL logic
+        const apiUrl = getBaseUrl();
+
         // Attempt to refresh the token
-        const response = await axios.post(
-          `${
-            process.env.REACT_APP_API_URL || "http://localhost:8000/api"
-          }/users/token/refresh/`,
-          { refresh: refreshToken }
-        );
+        const response = await axios.post(`${apiUrl}/users/token/refresh/`, {
+          refresh: refreshToken,
+        });
 
         if (response.data.access) {
           // Save new tokens
