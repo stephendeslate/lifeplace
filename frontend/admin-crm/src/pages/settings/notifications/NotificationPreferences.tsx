@@ -31,6 +31,7 @@ import {
   NotificationPreferenceFormData,
   NotificationType,
 } from "../../../types/notifications.types";
+import { getStyledNotificationIcon } from "../../../utils/notificationIcons";
 
 const NotificationPreferences: React.FC = () => {
   const { preferences, isLoading, updatePreferences, isUpdating } =
@@ -324,15 +325,10 @@ const NotificationPreferences: React.FC = () => {
                                       mr: 2,
                                     }}
                                   >
-                                    <span
-                                      className="material-icons"
-                                      style={{
-                                        color: type.color,
-                                        fontSize: 20,
-                                      }}
-                                    >
-                                      {type.icon}
-                                    </span>
+                                    {getStyledNotificationIcon(
+                                      type.icon,
+                                      type.color
+                                    )}
                                   </Box>
                                   <Box>
                                     <Typography variant="body1">

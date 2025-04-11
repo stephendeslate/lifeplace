@@ -37,6 +37,7 @@ import React, { useState } from "react";
 import SettingsLayout from "../../../components/settings/SettingsLayout";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { Notification } from "../../../types/notifications.types";
+import { getStyledNotificationIcon } from "../../../utils/notificationIcons";
 
 const NotificationManagement: React.FC = () => {
   const [page, setPage] = useState(0);
@@ -276,18 +277,10 @@ const NotificationManagement: React.FC = () => {
                           }15`,
                         }}
                       >
-                        <span
-                          className="material-icons"
-                          style={{
-                            color:
-                              notification.notification_type_details?.color ||
-                              "#2196f3",
-                            fontSize: 20,
-                          }}
-                        >
-                          {notification.notification_type_details?.icon ||
-                            "notifications"}
-                        </span>
+                        {getStyledNotificationIcon(
+                          notification.notification_type_details?.icon,
+                          notification.notification_type_details?.color
+                        )}
                       </Box>
 
                       {/* Content */}

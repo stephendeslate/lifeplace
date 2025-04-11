@@ -79,15 +79,25 @@ def export_files(url_paths, export_folder="export"):
 
 # Example usage
 url_paths = [
-    "backend/core/",
-    "backend/core/domains/clients/",
-    "frontend/admin-crm/src/components/clients/",
+    "backend/core/urls.py",
+    "backend/core/settings.py",
+    "backend/core/domains/dashboard/models.py",
+    "backend/core/domains/dashboard/urls.py",
+    "backend/core/domains/dashboard/views.py",
+    "backend/core/domains/notifications/models.py",
+    "backend/core/domains/notifications/urls.py",
+    "backend/core/domains/notifications/views.py",
+    "frontend/admin-crm/src/components/notifications/",
+    "frontend/admin-crm/src/components/dashboard/",
     "frontend/admin-crm/src/components/common/Sidebar.tsx",
-    "frontend/admin-crm/src/pages/clients/",
+    "frontend/admin-crm/src/pages/dashboard/",
+    "frontend/admin-crm/src/pages/settings/notifications/",
     "frontend/admin-crm/src/types/clients.ts",
     "frontend/admin-crm/src/App.tsx",
-    "frontend/admin-crm/src/apis/",
-    "frontend/admin-crm/src/hooks/"
+    "frontend/admin-crm/src/apis/dashboard.api.ts",
+    "frontend/admin-crm/src/apis/notifications.api.ts",
+    "frontend/admin-crm/src/hooks/useDashboard.ts",
+    "frontend/admin-crm/src/hooks/useNotifications.ts",
 ]
 
 export_files(url_paths)

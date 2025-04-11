@@ -15,6 +15,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import React from "react";
 import { Notification } from "../../types/notifications.types";
+import { getStyledNotificationIcon } from "../../utils/notificationIcons";
 
 interface NotificationItemProps {
   notification: Notification;
@@ -75,7 +76,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             position: "relative",
           }}
         >
-          {/* Notification icon */}
+          {/* Notification icon - now using Material-UI components */}
           <Box
             component="span"
             sx={{
@@ -88,9 +89,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               justifyContent: "center",
             }}
           >
-            <span className="material-icons" style={{ fontSize: 20 }}>
-              {icon}
-            </span>
+            {getStyledNotificationIcon(icon, color)}
           </Box>
 
           {/* Unread indicator */}
