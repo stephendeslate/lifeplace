@@ -14,6 +14,9 @@ urlpatterns = [
     path('login/', views.UserLoginAPIView.as_view(), name='login'),
     path('me/', views.CurrentUserView.as_view(), name='current_user'),
     
+    # Client registration endpoint
+    path('register/', views.client_register, name='client_register'),
+    
     # User management endpoints
     path('', views.UserListCreateAPIView.as_view(), name='user_list_create'),
     path('<int:pk>/', views.UserDetailAPIView.as_view(), name='user_detail'),

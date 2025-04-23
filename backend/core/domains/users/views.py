@@ -2,6 +2,7 @@
 from core.utils.permissions import IsAdmin, IsOwnerOrAdmin
 from django.contrib.auth import authenticate
 from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -43,6 +44,54 @@ class UserLoginAPIView(APIView):
             'tokens': tokens,
             'user': UserSerializer(user).data
         })
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def client_register(request):
+    """
+    Public endpoint for client self-registration
+    
+    This endpoint allows clients to register directly without an invitation.
+    It's exempted from CSRF protection to work with the client portal.
+    """
+    serializer = UserCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    # Make a copy of the validated data to avoid modifying the original
+    user_data = serializer.validated_data.copy()
+    
+    # Remove confirm_password field - it's only for validation
+    user_data.pop('confirm_password', None)
+    
+    # Extract profile data if present
+    profile_data = user_data.pop('profile', None)
+    
+    # Ensure role is set to CLIENT
+    user_data['role'] = 'CLIENT'
+    
+    try:
+        with transaction.atomic():
+            # Create user without profile first
+            user = User.objects.create_user(**user_data)
+            
+            # Create profile separately if profile data exists
+            if profile_data and not hasattr(user, 'profile'):
+                from .models import UserProfile
+                UserProfile.objects.create(user=user, **profile_data)
+            
+            # Generate tokens for automatic login
+            tokens = UserService.get_tokens_for_user(user)
+            
+            return Response({
+                'tokens': tokens,
+                'user': UserSerializer(user).data
+            }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({
+            'detail': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserListCreateAPIView(generics.ListCreateAPIView):

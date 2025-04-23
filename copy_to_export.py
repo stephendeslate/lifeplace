@@ -79,25 +79,24 @@ def export_files(url_paths, export_folder="export"):
 
 # Example usage
 url_paths = [
-    "backend/core/urls.py",
-    "backend/core/settings.py",
-    "backend/core/domains/dashboard/models.py",
-    "backend/core/domains/dashboard/urls.py",
-    "backend/core/domains/dashboard/views.py",
-    "backend/core/domains/notifications/models.py",
-    "backend/core/domains/notifications/urls.py",
-    "backend/core/domains/notifications/views.py",
-    "frontend/admin-crm/src/components/notifications/",
-    "frontend/admin-crm/src/components/dashboard/",
-    "frontend/admin-crm/src/components/common/Sidebar.tsx",
-    "frontend/admin-crm/src/pages/dashboard/",
-    "frontend/admin-crm/src/pages/settings/notifications/",
-    "frontend/admin-crm/src/types/clients.ts",
+    "backend/core/domains/users/models.py",
+    "backend/core/domains/users/serializers.py",
+    "backend/core/domains/users/views.py",
+    "backend/core/domains/users/views_password.py",
+    "backend/core/domains/clients/models.py",
+    "backend/core/domains/clients/serializers.py",
+    "backend/core/domains/clients/views.py",
+    "frontend/admin-crm/src/contexts/AuthContext.tsx",
+    "frontend/admin-crm/src/hooks/useAuth.ts",
+    "frontend/admin-crm/src/pages/auth/Login.tsx",
     "frontend/admin-crm/src/App.tsx",
-    "frontend/admin-crm/src/apis/dashboard.api.ts",
-    "frontend/admin-crm/src/apis/notifications.api.ts",
-    "frontend/admin-crm/src/hooks/useDashboard.ts",
-    "frontend/admin-crm/src/hooks/useNotifications.ts",
+    "frontend/admin-crm/src/apis/auth.api.ts",
+    "frontend/admin-crm/src/apis/user.api.ts",
+    "frontend/admin-crm/src/apis/admin.api.ts",
+    "frontend/admin-crm/src/types/auth.types.ts",
+    "frontend/admin-crm/src/types/admin.types.ts",
+    "frontend/admin-crm/src/types/clients.types.ts",
+    
 ]
 
 export_files(url_paths)

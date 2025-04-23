@@ -1,54 +1,84 @@
+// frontend/client-portal/src/App.tsx
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider } from "@mui/material/styles";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import React from "react";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
-import "./App.css";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
+import ToastProvider from "./components/common/ToastProvider";
+import { AuthProvider } from "./contexts/AuthContext";
+import useAuth from "./hooks/useAuth";
+import AcceptInvitation from "./pages/auth/AcceptInvitation";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import HomePage from "./pages/home/HomePage";
+import Profile from "./pages/profile/Profile";
+import theme from "./theme";
 
-// Import types from shared
+// Protected route component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-// Placeholder components
-const Home = () => (
-  <div className="page">
-    <h1>LifePlace Client Portal</h1>
-    <p>Welcome to your personal dashboard</p>
-  </div>
-);
+  if (isLoading) {
+    // You could add a loading spinner here
+    return <div>Loading...</div>;
+  }
 
-const Dashboard = () => (
-  <div className="page">
-    <h1>Client Dashboard</h1>
-    <p>View your account details and history</p>
-  </div>
-);
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
 
+  return <>{children}</>;
+};
+
+// App component with auth provider
+const AppWithAuth: React.FC = () => {
+  return (
+    <Routes>
+      {/* Public routes - these don't require authentication */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/accept-invitation/:id" element={<AcceptInvitation />} />
+
+      {/* Protected routes - these require authentication */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default redirect */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+};
+
+// Main App component
 const App: React.FC = () => {
   return (
-    <Router>
-      <div className="App">
-        <header className="App-header">
-          <h1>{process.env.REACT_APP_APP_NAME}</h1>
-          <nav>
-            <ul>
-              <li>
-                <a href="/">Home</a>
-              </li>
-              <li>
-                <a href="/dashboard">Dashboard</a>
-              </li>
-            </ul>
-          </nav>
-        </header>
-
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </main>
-
-        <footer>
-          <p>&copy; 2025 LifePlace</p>
-        </footer>
-      </div>
-    </Router>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <ToastProvider>
+          <Router>
+            <AuthProvider>
+              <AppWithAuth />
+            </AuthProvider>
+          </Router>
+        </ToastProvider>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 };
 
