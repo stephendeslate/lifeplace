@@ -86,9 +86,6 @@ url_paths = [
     "backend/core/domains/clients/models.py",
     "backend/core/domains/clients/serializers.py",
     "backend/core/domains/clients/views.py",
-    "frontend/admin-crm/src/contexts/AuthContext.tsx",
-    "frontend/admin-crm/src/hooks/useAuth.ts",
-    "frontend/admin-crm/src/pages/auth/Login.tsx",
     "frontend/admin-crm/src/App.tsx",
     "frontend/admin-crm/src/apis/auth.api.ts",
     "frontend/admin-crm/src/apis/user.api.ts",
@@ -96,6 +93,7 @@ url_paths = [
     "frontend/admin-crm/src/types/auth.types.ts",
     "frontend/admin-crm/src/types/admin.types.ts",
     "frontend/admin-crm/src/types/clients.types.ts",
+    "frontend/admin-crm/src/components/clients/ClientList.tsx",
     
 ]
 

@@ -230,10 +230,10 @@ export const useClients = (page = 1, filters?: ClientFilters) => {
 export const getClientAccountStatus = (client: Client): ClientAccountStatus => {
   if (!client) return ClientAccountStatus.NO_ACCOUNT;
 
-  // Safe way to check for password existence
-  const hasPassword = client.password !== undefined && client.password !== "";
+  // Check if the client has an account using has_account field from backend
+  const hasAccount = client.has_account === true;
 
-  if (!hasPassword) {
+  if (!hasAccount) {
     return ClientAccountStatus.NO_ACCOUNT;
   } else if (client.is_active) {
     return ClientAccountStatus.ACTIVE;

@@ -56,9 +56,9 @@ const ClientList: React.FC<ClientListProps> = ({
     onPageChange(newPage);
   };
 
-  // Helper to safely check if client has a password
-  const hasPassword = (client: Client): boolean => {
-    return client.password !== undefined && client.password !== "";
+  // Helper to check if client has an account
+  const hasAccount = (client: Client): boolean => {
+    return client.has_account === true;
   };
 
   return (
@@ -102,7 +102,7 @@ const ClientList: React.FC<ClientListProps> = ({
                   <TableCell>{client.profile?.phone || "-"}</TableCell>
                   <TableCell>{client.email}</TableCell>
                   <TableCell>
-                    {hasPassword(client) ? (
+                    {hasAccount(client) ? (
                       <Chip
                         label={client.is_active ? "Active" : "Inactive"}
                         color={client.is_active ? "success" : "default"}
@@ -132,7 +132,7 @@ const ClientList: React.FC<ClientListProps> = ({
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      {!hasPassword(client) && onSendInvitation && (
+                      {!hasAccount(client) && onSendInvitation && (
                         <Tooltip title="Send Invitation">
                           <IconButton
                             size="small"

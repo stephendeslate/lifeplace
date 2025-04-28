@@ -28,7 +28,7 @@ export interface Client extends User {
   profile?: ClientProfile;
   events?: Event[];
   account_status?: ClientAccountStatus; // Computed property
-  password?: string; // Add this to handle password checks in the UI
+  has_account?: boolean; // Added this field to use for account status check
 }
 
 export interface ClientResponse extends PaginationResponse<Client> {}
