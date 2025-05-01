@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 class BookingFlow(models.Model):
     """
-    Main configuration for a booking flow process
+    Main configuration for a booking flow process with fixed steps
     """
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -25,86 +25,132 @@ class BookingFlow(models.Model):
         return f"{self.name} for {self.event_type.name}"
 
 
-class BookingStep(models.Model):
+class IntroConfiguration(models.Model):
     """
-    Step in a booking flow process
+    Configuration for the introduction step
     """
-    STEP_TYPE_CHOICES = [
-        ('INTRO', 'Introduction'),
-        ('EVENT_TYPE', 'Event Type Selection'),
-        ('DATE', 'Date Selection'),
-        ('QUESTIONNAIRE', 'Questionnaire'),
-        ('PRODUCT', 'Product Selection'),
-        ('ADDON', 'Add-on Selection'),
-        ('SUMMARY', 'Booking Summary'),
-        ('PAYMENT', 'Payment'),
-        ('CONFIRMATION', 'Confirmation'),
-        ('CUSTOM', 'Custom Step'),
-    ]
-
-    booking_flow = models.ForeignKey(
+    booking_flow = models.OneToOneField(
         BookingFlow, 
         on_delete=models.CASCADE, 
-        related_name='steps'
+        related_name='intro_config'
     )
-    name = models.CharField(max_length=255)
-    step_type = models.CharField(max_length=20, choices=STEP_TYPE_CHOICES)
+    title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    instructions = models.TextField(blank=True, help_text="Instructions for the client")
-    order = models.PositiveIntegerField(help_text="Display order of this step")
+    show_event_details = models.BooleanField(default=True)
     is_required = models.BooleanField(default=True)
     is_visible = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ['booking_flow', 'order']
-        unique_together = [['booking_flow', 'order']]
-
     def __str__(self):
-        return f"{self.name} (Step {self.order}) - {self.booking_flow.name}"
+        return f"Intro config for {self.booking_flow.name}"
 
 
-class QuestionnaireStepConfiguration(models.Model):
+class DateConfiguration(models.Model):
     """
-    Configuration for questionnaire steps
+    Configuration for date selection step
     """
-    step = models.OneToOneField(
-        BookingStep, 
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
         on_delete=models.CASCADE, 
-        related_name='questionnaire_config',
-        limit_choices_to={'step_type': 'QUESTIONNAIRE'}
+        related_name='date_config'
     )
-    questionnaire = models.ForeignKey(
-        Questionnaire, 
-        on_delete=models.CASCADE, 
-        related_name='booking_step_configs'
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    min_days_in_future = models.PositiveIntegerField(default=1)
+    max_days_in_future = models.PositiveIntegerField(default=365)
+    allow_time_selection = models.BooleanField(default=True)
+    buffer_before_event = models.PositiveIntegerField(
+        default=0,
+        help_text="Buffer time in minutes before event"
     )
-    require_all_fields = models.BooleanField(default=False)
+    buffer_after_event = models.PositiveIntegerField(
+        default=0,
+        help_text="Buffer time in minutes after event"
+    )
+    allow_multi_day = models.BooleanField(
+        default=False, 
+        help_text="Allow selection of both start and end dates for multi-day events"
+    )
+    is_required = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Questionnaire config for {self.step.name}"
+        return f"Date config for {self.booking_flow.name}"
 
 
-class ProductStepConfiguration(models.Model):
+class QuestionnaireConfiguration(models.Model):
     """
-    Configuration for product selection steps
+    Configuration for questionnaire step
     """
-    step = models.OneToOneField(
-        BookingStep, 
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
         on_delete=models.CASCADE, 
-        related_name='product_config',
-        limit_choices_to={'step_type__in': ['PRODUCT', 'ADDON']}
+        related_name='questionnaire_config'
     )
-    products = models.ManyToManyField(
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    questionnaires = models.ManyToManyField(
+        Questionnaire, 
+        through='QuestionnaireItem',
+        related_name='booking_flows'
+    )
+    is_required = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Questionnaire config for {self.booking_flow.name}"
+
+
+class QuestionnaireItem(models.Model):
+    """
+    Questionnaire item with display order
+    """
+    config = models.ForeignKey(
+        QuestionnaireConfiguration, 
+        on_delete=models.CASCADE, 
+        related_name='questionnaire_items'
+    )
+    questionnaire = models.ForeignKey(
+        Questionnaire, 
+        on_delete=models.CASCADE, 
+        related_name='config_items'
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_required = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['config', 'order']
+        unique_together = [['config', 'order']]
+
+    def __str__(self):
+        return f"{self.questionnaire.name} (Order {self.order}) - {self.config.booking_flow.name}"
+
+
+class PackageConfiguration(models.Model):
+    """
+    Configuration for package selection step
+    """
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
+        on_delete=models.CASCADE, 
+        related_name='package_config'
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    packages = models.ManyToManyField(
         ProductOption, 
-        through='ProductStepItem',
-        related_name='booking_step_configs'
+        through='PackageItem',
+        related_name='package_configs'
     )
-    min_selection = models.PositiveIntegerField(default=0)
-    max_selection = models.PositiveIntegerField(default=0, help_text="0 means unlimited")
+    min_selection = models.PositiveIntegerField(default=1)
+    max_selection = models.PositiveIntegerField(default=1)
     selection_type = models.CharField(
         max_length=20, 
         choices=[
@@ -113,26 +159,28 @@ class ProductStepConfiguration(models.Model):
         ],
         default='SINGLE'
     )
+    is_required = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Product config for {self.step.name}"
+        return f"Package config for {self.booking_flow.name}"
 
 
-class ProductStepItem(models.Model):
+class PackageItem(models.Model):
     """
-    Product item for a product step with display order
+    Package item with display order
     """
     config = models.ForeignKey(
-        ProductStepConfiguration, 
+        PackageConfiguration, 
         on_delete=models.CASCADE, 
-        related_name='product_items'
+        related_name='package_items'
     )
     product = models.ForeignKey(
         ProductOption, 
         on_delete=models.CASCADE, 
-        related_name='step_items'
+        related_name='package_items'
     )
     order = models.PositiveIntegerField(default=0)
     is_highlighted = models.BooleanField(default=False)
@@ -155,53 +203,143 @@ class ProductStepItem(models.Model):
         unique_together = [['config', 'order']]
 
     def __str__(self):
-        return f"{self.product.name} (Order {self.order}) - {self.config.step.name}"
+        return f"{self.product.name} (Order {self.order}) - {self.config.booking_flow.name}"
 
 
-class DateStepConfiguration(models.Model):
+class AddonConfiguration(models.Model):
     """
-    Configuration for date selection steps
+    Configuration for addon selection step
     """
-    step = models.OneToOneField(
-        BookingStep, 
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
         on_delete=models.CASCADE, 
-        related_name='date_config',
-        limit_choices_to={'step_type': 'DATE'}
+        related_name='addon_config'
     )
-    min_days_in_future = models.PositiveIntegerField(default=1)
-    max_days_in_future = models.PositiveIntegerField(default=365)
-    allow_time_selection = models.BooleanField(default=True)
-    buffer_before_event = models.PositiveIntegerField(
-        default=0,
-        help_text="Buffer time in minutes before event"
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    addons = models.ManyToManyField(
+        ProductOption, 
+        through='AddonItem',
+        related_name='addon_configs'
     )
-    buffer_after_event = models.PositiveIntegerField(
-        default=0,
-        help_text="Buffer time in minutes after event"
-    )
+    min_selection = models.PositiveIntegerField(default=0)
+    max_selection = models.PositiveIntegerField(default=0, help_text="0 means unlimited")
+    is_required = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Date config for {self.step.name}"
+        return f"Addon config for {self.booking_flow.name}"
 
 
-class CustomStepConfiguration(models.Model):
+class AddonItem(models.Model):
     """
-    Configuration for custom steps
+    Addon item with display order
     """
-    step = models.OneToOneField(
-        BookingStep, 
+    config = models.ForeignKey(
+        AddonConfiguration, 
         on_delete=models.CASCADE, 
-        related_name='custom_config',
-        limit_choices_to={'step_type': 'CUSTOM'}
+        related_name='addon_items'
     )
-    html_content = models.TextField(blank=True)
-    use_react_component = models.BooleanField(default=False)
-    component_name = models.CharField(max_length=255, blank=True)
-    component_props = models.JSONField(default=dict, blank=True)
+    product = models.ForeignKey(
+        ProductOption, 
+        on_delete=models.CASCADE, 
+        related_name='addon_items'
+    )
+    order = models.PositiveIntegerField(default=0)
+    is_highlighted = models.BooleanField(default=False)
+    custom_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="If set, overrides the product's default price"
+    )
+    custom_description = models.TextField(
+        blank=True,
+        help_text="If set, overrides the product's default description"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['config', 'order']
+        unique_together = [['config', 'order']]
+
+    def __str__(self):
+        return f"{self.product.name} (Order {self.order}) - {self.config.booking_flow.name}"
+
+
+class SummaryConfiguration(models.Model):
+    """
+    Configuration for summary step
+    """
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
+        on_delete=models.CASCADE, 
+        related_name='summary_config'
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    show_date = models.BooleanField(default=True)
+    show_packages = models.BooleanField(default=True)
+    show_addons = models.BooleanField(default=True)
+    show_questionnaire = models.BooleanField(default=True)
+    show_total = models.BooleanField(default=True)
+    is_required = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Custom config for {self.step.name}"
+        return f"Summary config for {self.booking_flow.name}"
+
+
+class PaymentConfiguration(models.Model):
+    """
+    Configuration for payment step
+    """
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
+        on_delete=models.CASCADE, 
+        related_name='payment_config'
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    require_deposit = models.BooleanField(default=False)
+    deposit_percentage = models.PositiveIntegerField(default=50)
+    accept_credit_card = models.BooleanField(default=True)
+    accept_paypal = models.BooleanField(default=False)
+    accept_bank_transfer = models.BooleanField(default=False)
+    payment_instructions = models.TextField(blank=True)
+    is_required = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Payment config for {self.booking_flow.name}"
+
+
+class ConfirmationConfiguration(models.Model):
+    """
+    Configuration for confirmation step
+    """
+    booking_flow = models.OneToOneField(
+        BookingFlow, 
+        on_delete=models.CASCADE, 
+        related_name='confirmation_config'
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    success_message = models.TextField(blank=True)
+    send_email = models.BooleanField(default=True)
+    email_template = models.CharField(max_length=255, blank=True)
+    show_summary = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Confirmation config for {self.booking_flow.name}"

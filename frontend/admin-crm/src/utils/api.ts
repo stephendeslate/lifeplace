@@ -19,21 +19,41 @@ const getBaseUrl = () => {
   return process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 };
 
+// Function to get CSRF token from cookies
+const getCsrfToken = () => {
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("csrftoken="))
+    ?.split("=")[1];
+};
+
 // Create axios instance
 const api = axios.create({
   baseURL: getBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Important for CSRF cookies to be included
 });
 
-// Add request interceptor to add authorization header
+// Add request interceptor to add authorization header and CSRF token
 api.interceptors.request.use(
   (config) => {
+    // Add Authorization header if token exists
     const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add CSRF token for unsafe methods
+    const unsafeMethods = ["post", "put", "patch", "delete"];
+    if (config.method && unsafeMethods.includes(config.method.toLowerCase())) {
+      const csrfToken = getCsrfToken();
+      if (csrfToken) {
+        config.headers["X-CSRFToken"] = csrfToken;
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)

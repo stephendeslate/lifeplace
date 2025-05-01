@@ -3,13 +3,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { bookingFlowApi } from "../apis/bookingflow.api";
 import {
+  AddonConfig,
   BookingFlow,
+  BookingFlowDetail,
   BookingFlowFormData,
-  BookingStep,
-  BookingStepFormData,
-  ProductStepItemFormData,
-  ReorderProductItemsRequest,
-  ReorderStepsRequest,
+  ConfirmationConfig,
+  DateConfig,
+  IntroConfig,
+  PackageConfig,
+  PaymentConfig,
+  QuestionnaireConfig,
+  SummaryConfig,
 } from "../types/bookingflow.types";
 
 /**
@@ -160,257 +164,170 @@ export const useBookingFlows = (
     },
   });
 
-  // Mutation to create step
-  const createStepMutation = useMutation({
+  // NEW ADDITIONS: Mutations for specific config types
+
+  // Mutation for updating intro configuration
+  const updateIntroConfigMutation = useMutation({
     mutationFn: ({
       flowId,
-      stepData,
+      configData,
     }: {
       flowId: number;
-      stepData: BookingStepFormData;
-    }) => {
-      const data = {
-        ...stepData,
-        booking_flow: flowId,
-      };
-      return bookingFlowApi.createBookingStep(data);
-    },
-    onSuccess: (data, variables) => {
-      toast.success(`Booking step "${data.name}" created successfully`);
-      // Invalidate cache to refresh data
-      queryClient.invalidateQueries({
-        queryKey: ["bookingFlow", variables.flowId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["bookingSteps", variables.flowId],
-      });
+      configData: IntroConfig;
+    }) => bookingFlowApi.updateIntroConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Introduction configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to create booking step";
+        error.response?.data?.detail ||
+        "Failed to update introduction configuration";
       toast.error(errorMessage);
     },
   });
 
-  // Mutation to update step
-  const updateStepMutation = useMutation({
+  // Mutation for updating date configuration
+  const updateDateConfigMutation = useMutation({
     mutationFn: ({
-      id,
-      stepData,
       flowId,
+      configData,
     }: {
-      id: number;
-      stepData: Partial<BookingStepFormData>;
       flowId: number;
-    }) => bookingFlowApi.updateBookingStep(id, stepData),
-    onSuccess: (data, variables) => {
-      toast.success(`Booking step "${data.name}" updated successfully`);
-      // Invalidate cache to refresh data
-      queryClient.invalidateQueries({
-        queryKey: ["bookingFlow", variables.flowId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["bookingSteps", variables.flowId],
-      });
-    },
-    onError: (error: any, variables) => {
-      // Handle specific known errors with user-friendly messages
-      if (error.response?.data?.detail?.includes("already exists")) {
-        toast.error(
-          "Step order updated but required reordering other steps. Refreshing view..."
-        );
-        // Still refresh the data to show the correct step order
-        queryClient.invalidateQueries({
-          queryKey: ["bookingFlow", variables.flowId],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["bookingSteps", variables.flowId],
-        });
-      } else {
-        const errorMessage =
-          error.response?.data?.detail || "Failed to update booking step";
-        toast.error(errorMessage);
-      }
-    },
-  });
-
-  // Mutation to delete step
-  const deleteStepMutation = useMutation({
-    mutationFn: ({ id, flowId }: { id: number; flowId: number }) =>
-      bookingFlowApi.deleteBookingStep(id),
-    onSuccess: (_, variables) => {
-      toast.success("Booking step deleted successfully");
-      // Invalidate cache to refresh data
-      queryClient.invalidateQueries({
-        queryKey: ["bookingFlow", variables.flowId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["bookingSteps", variables.flowId],
-      });
+      configData: DateConfig;
+    }) => bookingFlowApi.updateDateConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Date configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to delete booking step";
+        error.response?.data?.detail || "Failed to update date configuration";
       toast.error(errorMessage);
     },
   });
 
-  // Mutation to reorder steps
-  const reorderStepsMutation = useMutation({
-    mutationFn: (data: ReorderStepsRequest) =>
-      bookingFlowApi.reorderSteps(data),
-    onMutate: async (data) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ["bookingSteps", data.flow_id],
-      });
-
-      // Snapshot the previous values
-      const previousSteps = queryClient.getQueryData<BookingStep[]>([
-        "bookingSteps",
-        data.flow_id,
-      ]);
-
-      if (previousSteps) {
-        // Create a new array for the optimistic update
-        const updatedSteps = [...previousSteps];
-
-        // Create a sorted version of steps according to the new order mapping
-        const sortedSteps = [...updatedSteps].sort((a, b) => {
-          const orderA = data.order_mapping[a.id.toString()] || a.order;
-          const orderB = data.order_mapping[b.id.toString()] || b.order;
-          return orderA - orderB;
-        });
-
-        // Apply the new order values to maintain proper sequence
-        sortedSteps.forEach((step, index) => {
-          const stepIndex = updatedSteps.findIndex((s) => s.id === step.id);
-          if (stepIndex !== -1) {
-            // Order is 1-based, so add 1 to the index
-            const newOrder = index + 1;
-            updatedSteps[stepIndex] = {
-              ...updatedSteps[stepIndex],
-              order: newOrder,
-            };
-
-            // If this step is in the order_mapping, update the mapping
-            if (step.id.toString() in data.order_mapping) {
-              data.order_mapping[step.id.toString()] = newOrder;
-            }
-          }
-        });
-
-        // Update the cache with optimistic data
-        queryClient.setQueryData(["bookingSteps", data.flow_id], updatedSteps);
-      }
-
-      return { previousSteps };
-    },
-    onSuccess: (data, variables) => {
-      toast.success("Booking steps reordered successfully");
-      // Refresh the data to ensure consistency
-      queryClient.invalidateQueries({
-        queryKey: ["bookingFlow", variables.flow_id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["bookingSteps", variables.flow_id],
-      });
-    },
-    onError: (error: any, variables, context) => {
-      // Revert to previous state if there's an error
-      if (context?.previousSteps) {
-        queryClient.setQueryData(
-          ["bookingSteps", variables.flow_id],
-          context.previousSteps
-        );
-      }
-
-      const errorMessage =
-        error.response?.data?.detail || "Failed to reorder booking steps";
-      toast.error(errorMessage);
-    },
-  });
-
-  // Mutation to create product item
-  const createProductItemMutation = useMutation({
+  // Mutation for updating questionnaire configuration
+  const updateQuestionnaireConfigMutation = useMutation({
     mutationFn: ({
-      configId,
-      itemData,
+      flowId,
+      configData,
     }: {
-      configId: number;
-      itemData: ProductStepItemFormData;
-    }) => bookingFlowApi.createProductItem(configId, itemData),
-    onSuccess: (data, variables) => {
-      toast.success("Product item added successfully");
-      // Invalidate product items cache
-      queryClient.invalidateQueries({
-        queryKey: ["productItems", variables.configId],
-      });
+      flowId: number;
+      configData: QuestionnaireConfig;
+    }) => bookingFlowApi.updateQuestionnaireConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Questionnaire configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to add product item";
+        error.response?.data?.detail ||
+        "Failed to update questionnaire configuration";
       toast.error(errorMessage);
     },
   });
 
-  // Mutation to update product item
-  const updateProductItemMutation = useMutation({
+  // Mutation for updating package configuration
+  const updatePackageConfigMutation = useMutation({
     mutationFn: ({
-      id,
-      itemData,
-      configId,
+      flowId,
+      configData,
     }: {
-      id: number;
-      itemData: Partial<ProductStepItemFormData>;
-      configId: number;
-    }) => bookingFlowApi.updateProductItem(id, itemData),
-    onSuccess: (data, variables) => {
-      toast.success("Product item updated successfully");
-      // Invalidate product items cache
-      queryClient.invalidateQueries({
-        queryKey: ["productItems", variables.configId],
-      });
+      flowId: number;
+      configData: PackageConfig;
+    }) => bookingFlowApi.updatePackageConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Package configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to update product item";
+        error.response?.data?.detail ||
+        "Failed to update package configuration";
       toast.error(errorMessage);
     },
   });
 
-  // Mutation to delete product item
-  const deleteProductItemMutation = useMutation({
-    mutationFn: ({ id, configId }: { id: number; configId: number }) =>
-      bookingFlowApi.deleteProductItem(id),
-    onSuccess: (_, variables) => {
-      toast.success("Product item deleted successfully");
-      // Invalidate product items cache
-      queryClient.invalidateQueries({
-        queryKey: ["productItems", variables.configId],
-      });
+  // Mutation for updating addon configuration
+  const updateAddonConfigMutation = useMutation({
+    mutationFn: ({
+      flowId,
+      configData,
+    }: {
+      flowId: number;
+      configData: AddonConfig;
+    }) => bookingFlowApi.updateAddonConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Add-on configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to delete product item";
+        error.response?.data?.detail || "Failed to update add-on configuration";
       toast.error(errorMessage);
     },
   });
 
-  // Mutation to reorder product items
-  const reorderProductItemsMutation = useMutation({
-    mutationFn: (data: ReorderProductItemsRequest) =>
-      bookingFlowApi.reorderProductItems(data),
-    onSuccess: (data, variables) => {
-      toast.success("Product items reordered successfully");
-      // Invalidate product items cache
-      queryClient.invalidateQueries({
-        queryKey: ["productItems", variables.config_id],
-      });
+  // Mutation for updating summary configuration
+  const updateSummaryConfigMutation = useMutation({
+    mutationFn: ({
+      flowId,
+      configData,
+    }: {
+      flowId: number;
+      configData: SummaryConfig;
+    }) => bookingFlowApi.updateSummaryConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Summary configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
     },
     onError: (error: any) => {
       const errorMessage =
-        error.response?.data?.detail || "Failed to reorder product items";
+        error.response?.data?.detail ||
+        "Failed to update summary configuration";
+      toast.error(errorMessage);
+    },
+  });
+
+  // Mutation for updating payment configuration
+  const updatePaymentConfigMutation = useMutation({
+    mutationFn: ({
+      flowId,
+      configData,
+    }: {
+      flowId: number;
+      configData: PaymentConfig;
+    }) => bookingFlowApi.updatePaymentConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Payment configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail ||
+        "Failed to update payment configuration";
+      toast.error(errorMessage);
+    },
+  });
+
+  // Mutation for updating confirmation configuration
+  const updateConfirmationConfigMutation = useMutation({
+    mutationFn: ({
+      flowId,
+      configData,
+    }: {
+      flowId: number;
+      configData: ConfirmationConfig;
+    }) => bookingFlowApi.updateConfirmationConfig(flowId, configData),
+    onSuccess: () => {
+      toast.success("Confirmation configuration updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["bookingFlow"] });
+    },
+    onError: (error: any) => {
+      const errorMessage =
+        error.response?.data?.detail ||
+        "Failed to update confirmation configuration";
       toast.error(errorMessage);
     },
   });
@@ -440,86 +357,39 @@ export const useBookingFlows = (
     deleteFlow: deleteFlowMutation.mutate,
     isDeletingFlow: deleteFlowMutation.isPending,
 
-    // Step mutations
-    createStep: createStepMutation.mutate,
-    isCreatingStep: createStepMutation.isPending,
-    updateStep: updateStepMutation.mutate,
-    isUpdatingStep: updateStepMutation.isPending,
-    deleteStep: deleteStepMutation.mutate,
-    isDeletingStep: deleteStepMutation.isPending,
-    reorderSteps: reorderStepsMutation.mutate,
-    isReorderingSteps: reorderStepsMutation.isPending,
-
-    // Product item mutations
-    createProductItem: createProductItemMutation.mutate,
-    isCreatingProductItem: createProductItemMutation.isPending,
-    updateProductItem: updateProductItemMutation.mutate,
-    isUpdatingProductItem: updateProductItemMutation.isPending,
-    deleteProductItem: deleteProductItemMutation.mutate,
-    isDeletingProductItem: deleteProductItemMutation.isPending,
-    reorderProductItems: reorderProductItemsMutation.mutate,
-    isReorderingProductItems: reorderProductItemsMutation.isPending,
+    // Configuration mutations
+    updateIntroConfig: updateIntroConfigMutation.mutate,
+    isUpdatingIntroConfig: updateIntroConfigMutation.isPending,
+    updateDateConfig: updateDateConfigMutation.mutate,
+    isUpdatingDateConfig: updateDateConfigMutation.isPending,
+    updateQuestionnaireConfig: updateQuestionnaireConfigMutation.mutate,
+    isUpdatingQuestionnaireConfig: updateQuestionnaireConfigMutation.isPending,
+    updatePackageConfig: updatePackageConfigMutation.mutate,
+    isUpdatingPackageConfig: updatePackageConfigMutation.isPending,
+    updateAddonConfig: updateAddonConfigMutation.mutate,
+    isUpdatingAddonConfig: updateAddonConfigMutation.isPending,
+    updateSummaryConfig: updateSummaryConfigMutation.mutate,
+    isUpdatingSummaryConfig: updateSummaryConfigMutation.isPending,
+    updatePaymentConfig: updatePaymentConfigMutation.mutate,
+    isUpdatingPaymentConfig: updatePaymentConfigMutation.isPending,
+    updateConfirmationConfig: updateConfirmationConfigMutation.mutate,
+    isUpdatingConfirmationConfig: updateConfirmationConfigMutation.isPending,
   };
 };
 
 /**
- * Hook for fetching a specific booking flow and its steps
+ * Hook for fetching a specific booking flow with all configurations
  */
 export const useBookingFlow = (flowId?: number) => {
-  const queryClient = useQueryClient();
-
   // Query to fetch a specific booking flow with detail
-  const {
-    data: flow,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["bookingFlow", flowId],
     queryFn: () => bookingFlowApi.getBookingFlowById(flowId!),
     enabled: !!flowId,
   });
 
-  // Query to fetch steps for this booking flow
-  const {
-    data: steps,
-    isLoading: isLoadingSteps,
-    refetch: refetchSteps,
-  } = useQuery({
-    queryKey: ["bookingSteps", flowId],
-    queryFn: () => bookingFlowApi.getStepsForFlow(flowId!),
-    enabled: !!flowId,
-  });
-
   return {
-    flow,
-    isLoading,
-    error,
-    refetch,
-    steps,
-    isLoadingSteps,
-    refetchSteps,
-  };
-};
-
-/**
- * Hook for fetching product items for a config
- */
-export const useProductItems = (configId?: number) => {
-  // Query to fetch product items for a config
-  const {
-    data: items,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ["productItems", configId],
-    queryFn: () => bookingFlowApi.getProductItems(configId!),
-    enabled: !!configId,
-  });
-
-  return {
-    items,
+    flow: data as BookingFlowDetail | null, // Explicitly cast to BookingFlowDetail
     isLoading,
     error,
     refetch,

@@ -5,16 +5,138 @@ from core.domains.questionnaires.serializers import QuestionnaireSerializer
 from rest_framework import serializers
 
 from .models import (
+    AddonConfiguration,
+    AddonItem,
     BookingFlow,
-    BookingStep,
-    CustomStepConfiguration,
-    DateStepConfiguration,
-    ProductStepConfiguration,
-    ProductStepItem,
-    QuestionnaireStepConfiguration,
+    ConfirmationConfiguration,
+    DateConfiguration,
+    IntroConfiguration,
+    PackageConfiguration,
+    PackageItem,
+    PaymentConfiguration,
+    QuestionnaireConfiguration,
+    QuestionnaireItem,
+    SummaryConfiguration,
 )
 
 
+# Base configuration serializers
+class IntroConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IntroConfiguration
+        fields = [
+            'id', 'title', 'description', 'show_event_details',
+            'is_required', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class DateConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DateConfiguration
+        fields = [
+            'id', 'title', 'description', 'min_days_in_future', 'max_days_in_future',
+            'allow_time_selection', 'buffer_before_event', 'buffer_after_event',
+            'allow_multi_day', 'is_required', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class QuestionnaireItemSerializer(serializers.ModelSerializer):
+    questionnaire_details = QuestionnaireSerializer(source='questionnaire', read_only=True)
+    
+    class Meta:
+        model = QuestionnaireItem
+        fields = [
+            'id', 'questionnaire', 'questionnaire_details', 'order',
+            'is_required', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class QuestionnaireConfigurationSerializer(serializers.ModelSerializer):
+    questionnaire_items = QuestionnaireItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = QuestionnaireConfiguration
+        fields = [
+            'id', 'title', 'description', 'questionnaire_items',
+            'is_required', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'questionnaire_items']
+
+class PackageItemSerializer(serializers.ModelSerializer):
+    product_details = ProductOptionSerializer(source='product', read_only=True)
+    
+    class Meta:
+        model = PackageItem
+        fields = [
+            'id', 'product', 'product_details', 'order', 'is_highlighted',
+            'custom_price', 'custom_description', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class PackageConfigurationSerializer(serializers.ModelSerializer):
+    package_items = PackageItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = PackageConfiguration
+        fields = [
+            'id', 'title', 'description', 'min_selection', 'max_selection',
+            'selection_type', 'package_items', 'is_required', 'is_visible',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'package_items']
+
+class AddonItemSerializer(serializers.ModelSerializer):
+    product_details = ProductOptionSerializer(source='product', read_only=True)
+    
+    class Meta:
+        model = AddonItem
+        fields = [
+            'id', 'product', 'product_details', 'order', 'is_highlighted',
+            'custom_price', 'custom_description', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class AddonConfigurationSerializer(serializers.ModelSerializer):
+    addon_items = AddonItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = AddonConfiguration
+        fields = [
+            'id', 'title', 'description', 'min_selection', 'max_selection',
+            'addon_items', 'is_required', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'addon_items']
+
+class SummaryConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SummaryConfiguration
+        fields = [
+            'id', 'title', 'description', 'show_date', 'show_packages',
+            'show_addons', 'show_questionnaire', 'show_total', 'is_required',
+            'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class PaymentConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentConfiguration
+        fields = [
+            'id', 'title', 'description', 'require_deposit', 'deposit_percentage',
+            'accept_credit_card', 'accept_paypal', 'accept_bank_transfer',
+            'payment_instructions', 'is_required', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class ConfirmationConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConfirmationConfiguration
+        fields = [
+            'id', 'title', 'description', 'success_message', 'send_email',
+            'email_template', 'show_summary', 'is_visible', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+# Booking Flow serializers
 class BookingFlowSerializer(serializers.ModelSerializer):
     event_type_details = EventTypeSerializer(source='event_type', read_only=True)
     
@@ -26,118 +148,23 @@ class BookingFlowSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
 class BookingFlowDetailSerializer(serializers.ModelSerializer):
     event_type_details = EventTypeSerializer(source='event_type', read_only=True)
-    steps_count = serializers.SerializerMethodField()
+    intro_config = IntroConfigurationSerializer(read_only=True)
+    date_config = DateConfigurationSerializer(read_only=True)
+    questionnaire_config = QuestionnaireConfigurationSerializer(read_only=True)
+    package_config = PackageConfigurationSerializer(read_only=True)
+    addon_config = AddonConfigurationSerializer(read_only=True)
+    summary_config = SummaryConfigurationSerializer(read_only=True)
+    payment_config = PaymentConfigurationSerializer(read_only=True)
+    confirmation_config = ConfirmationConfigurationSerializer(read_only=True)
     
     class Meta:
         model = BookingFlow
         fields = [
             'id', 'name', 'description', 'event_type', 'event_type_details',
-            'is_active', 'steps_count', 'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'steps_count']
-    
-    def get_steps_count(self, obj):
-        return obj.steps.count()
-
-
-class QuestionnaireStepConfigurationSerializer(serializers.ModelSerializer):
-    questionnaire_details = QuestionnaireSerializer(source='questionnaire', read_only=True)
-    
-    class Meta:
-        model = QuestionnaireStepConfiguration
-        fields = [
-            'id', 'questionnaire', 'questionnaire_details', 'require_all_fields',
-            'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class ProductStepItemSerializer(serializers.ModelSerializer):
-    product_details = ProductOptionSerializer(source='product', read_only=True)
-    
-    class Meta:
-        model = ProductStepItem
-        fields = [
-            'id', 'product', 'product_details', 'order', 'is_highlighted',
-            'custom_price', 'custom_description', 'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class ProductStepConfigurationSerializer(serializers.ModelSerializer):
-    product_items = ProductStepItemSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = ProductStepConfiguration
-        fields = [
-            'id', 'min_selection', 'max_selection', 'selection_type',
-            'product_items', 'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'product_items']
-
-
-class DateStepConfigurationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DateStepConfiguration
-        fields = [
-            'id', 'min_days_in_future', 'max_days_in_future', 'allow_time_selection',
-            'buffer_before_event', 'buffer_after_event', 'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class CustomStepConfigurationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomStepConfiguration
-        fields = [
-            'id', 'html_content', 'use_react_component', 'component_name',
-            'component_props', 'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class BookingStepSerializer(serializers.ModelSerializer):
-    step_type_display = serializers.CharField(source='get_step_type_display', read_only=True)
-    
-    class Meta:
-        model = BookingStep
-        fields = [
-            'id', 'booking_flow', 'name', 'step_type', 'step_type_display',
-            'description', 'instructions', 'order', 'is_required', 'is_visible',
-            'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class BookingStepDetailSerializer(serializers.ModelSerializer):
-    step_type_display = serializers.CharField(source='get_step_type_display', read_only=True)
-    questionnaire_config = QuestionnaireStepConfigurationSerializer(read_only=True)
-    product_config = ProductStepConfigurationSerializer(read_only=True)
-    date_config = DateStepConfigurationSerializer(read_only=True)
-    custom_config = CustomStepConfigurationSerializer(read_only=True)
-    
-    class Meta:
-        model = BookingStep
-        fields = [
-            'id', 'booking_flow', 'name', 'step_type', 'step_type_display',
-            'description', 'instructions', 'order', 'is_required', 'is_visible',
-            'questionnaire_config', 'product_config', 'date_config', 'custom_config',
-            'created_at', 'updated_at',
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class BookingFlowWithStepsSerializer(serializers.ModelSerializer):
-    steps = BookingStepSerializer(many=True, read_only=True)
-    event_type_details = EventTypeSerializer(source='event_type', read_only=True)
-    
-    class Meta:
-        model = BookingFlow
-        fields = [
-            'id', 'name', 'description', 'event_type', 'event_type_details',
-            'is_active', 'steps', 'created_at', 'updated_at',
+            'is_active', 'intro_config', 'date_config', 'questionnaire_config',
+            'package_config', 'addon_config', 'summary_config', 'payment_config',
+            'confirmation_config', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']

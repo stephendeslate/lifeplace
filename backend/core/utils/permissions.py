@@ -22,6 +22,14 @@ class IsClient(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'CLIENT'
+    
+class IsAdminOrClient(permissions.BasePermission):
+    """
+    Allows access to either admin or client users.
+    """
+    def has_permission(self, request, view):
+        return (request.user and request.user.is_authenticated and 
+                (request.user.role == 'ADMIN' or request.user.role == 'CLIENT'))
 
 
 class IsOwnerOrAdmin(permissions.BasePermission):

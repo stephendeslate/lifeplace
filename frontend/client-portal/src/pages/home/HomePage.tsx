@@ -53,14 +53,25 @@ const HomePage: React.FC = () => {
           </Typography>
 
           {isAuthenticated ? (
-            <ActionButton
-              variant="contained"
-              color="primary"
-              component={RouterLink}
-              to="/profile"
-            >
-              Go to Your Profile
-            </ActionButton>
+            <Box mt={4}>
+              <ActionButton
+                variant="contained"
+                color="primary"
+                component={RouterLink}
+                to="/booking"
+                sx={{ mr: 2 }}
+              >
+                Book Now
+              </ActionButton>
+              <ActionButton
+                variant="outlined"
+                color="primary"
+                component={RouterLink}
+                to="/profile"
+              >
+                Your Profile
+              </ActionButton>
+            </Box>
           ) : (
             <Box mt={4}>
               <ActionButton

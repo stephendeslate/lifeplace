@@ -1,5 +1,4 @@
 // frontend/admin-crm/src/pages/settings/bookingflow/BookingFlows.tsx
-import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import {
   Add as AddIcon,
   BookOnline as BookingIcon,
@@ -27,6 +26,8 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
+  Tab,
+  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -35,11 +36,15 @@ import React, { useState } from "react";
 import {
   BookingFlowDialog,
   BookingFlowItem,
-  BookingStepDialog,
-  BookingStepItem,
-  BookingStepTabs,
-  ProductStepItems,
 } from "../../../components/bookingflow";
+import AddonConfigForm from "../../../components/bookingflow/steps/AddonConfigForm";
+import ConfirmationConfigForm from "../../../components/bookingflow/steps/ConfirmationConfigForm";
+import DateConfigForm from "../../../components/bookingflow/steps/DateConfigForm";
+import IntroConfigForm from "../../../components/bookingflow/steps/IntroConfigForm";
+import PackageConfigForm from "../../../components/bookingflow/steps/PackageConfigForm";
+import PaymentConfigForm from "../../../components/bookingflow/steps/PaymentConfigForm";
+import QuestionnaireConfigForm from "../../../components/bookingflow/steps/QuestionnaireConfigForm";
+import SummaryConfigForm from "../../../components/bookingflow/steps/SummaryConfigForm";
 import SettingsLayout from "../../../components/settings/SettingsLayout";
 import {
   useBookingFlow,
@@ -50,14 +55,28 @@ import { useProducts } from "../../../hooks/useProducts";
 import { useQuestionnaires } from "../../../hooks/useQuestionnaires";
 import {
   BookingFlow,
+  BookingFlowDetail, // Make sure to import this type
   BookingFlowFormData,
   BookingFlowFormErrors,
-  BookingStep,
-  BookingStepFormData,
-  BookingStepFormErrors,
-  ProductStepItemFormData,
-  StepType,
 } from "../../../types/bookingflow.types";
+
+// Step tab type definition
+type StepTabType =
+  | "INTRO"
+  | "DATE"
+  | "QUESTIONNAIRE"
+  | "PACKAGE"
+  | "ADDON"
+  | "SUMMARY"
+  | "PAYMENT"
+  | "CONFIRMATION";
+
+// Step tab information
+interface StepTabInfo {
+  id: StepTabType;
+  label: string;
+  icon: React.ReactElement;
+}
 
 const BookingFlows: React.FC = () => {
   // State for search and filters
@@ -68,14 +87,11 @@ const BookingFlows: React.FC = () => {
 
   // State for selected flow and tab
   const [selectedFlow, setSelectedFlow] = useState<BookingFlow | null>(null);
-  const [currentTab, setCurrentTab] = useState<StepType>("INTRO");
+  const [currentStep, setCurrentStep] = useState<StepTabType>("INTRO");
 
   // State for dialogs
   const [flowDialogOpen, setFlowDialogOpen] = useState(false);
-  const [stepDialogOpen, setStepDialogOpen] = useState(false);
   const [deleteFlowDialogOpen, setDeleteFlowDialogOpen] = useState(false);
-  const [deleteStepDialogOpen, setDeleteStepDialogOpen] = useState(false);
-  const [selectedStepId, setSelectedStepId] = useState<number | null>(null);
   const [editMode, setEditMode] = useState(false);
 
   // Form states
@@ -91,20 +107,6 @@ const BookingFlows: React.FC = () => {
     {}
   );
 
-  const initialStepForm: BookingStepFormData = {
-    name: "",
-    step_type: "INTRO",
-    description: "",
-    instructions: "",
-    is_required: true,
-    is_visible: true,
-  };
-  const [stepForm, setStepForm] =
-    useState<BookingStepFormData>(initialStepForm);
-  const [stepFormErrors, setStepFormErrors] = useState<BookingStepFormErrors>(
-    {}
-  );
-
   // Use custom hooks for data fetching
   const queryClient = useQueryClient();
   const {
@@ -117,43 +119,74 @@ const BookingFlows: React.FC = () => {
     isUpdatingFlow,
     deleteFlow,
     isDeletingFlow,
-    createStep,
-    isCreatingStep,
-    updateStep,
-    isUpdatingStep,
-    deleteStep,
-    isDeletingStep,
-    reorderSteps,
-    isReorderingSteps,
-    createProductItem,
-    isCreatingProductItem,
-    updateProductItem,
-    isUpdatingProductItem,
-    deleteProductItem,
-    isDeletingProductItem,
-    reorderProductItems,
-    isReorderingProductItems,
+    updateQuestionnaireConfig,
+    updatePackageConfig,
+    updateAddonConfig,
+    updateConfirmationConfig,
+    updateIntroConfig,
+    updateDateConfig,
+    updateSummaryConfig,
+    updatePaymentConfig,
   } = useBookingFlows(page + 1, eventTypeFilter || undefined, searchTerm);
 
   const {
     flow: flowDetails,
-    steps: flowSteps,
     isLoading: isLoadingFlow,
-    refetchSteps,
-  } = useBookingFlow(selectedFlow?.id);
+    refetch: refetchFlow,
+  } = useBookingFlow(selectedFlow?.id) as {
+    flow: BookingFlowDetail | null; // Explicitly type flowDetails as BookingFlowDetail
+    isLoading: boolean;
+    refetch: () => void;
+  };
 
   const { eventTypes, isLoading: isLoadingEventTypes } = useEventTypes();
   const { questionnaires, isLoading: isLoadingQuestionnaires } =
     useQuestionnaires();
   const { products: allProducts, isLoading: isLoadingProducts } = useProducts();
 
-  // Get steps for current flow and tab
-  const getFilteredSteps = (): BookingStep[] => {
-    if (!flowSteps) return [];
-    return flowSteps
-      .filter((step) => step.step_type === currentTab)
-      .sort((a, b) => a.order - b.order);
-  };
+  // Step tabs definition
+  const stepTabs: StepTabInfo[] = [
+    {
+      id: "INTRO",
+      label: "Introduction",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "DATE",
+      label: "Date Selection",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "QUESTIONNAIRE",
+      label: "Questionnaire",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "PACKAGE",
+      label: "Packages",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "ADDON",
+      label: "Add-ons",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "SUMMARY",
+      label: "Summary",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "PAYMENT",
+      label: "Payment",
+      icon: <BookingIcon fontSize="small" />,
+    },
+    {
+      id: "CONFIRMATION",
+      label: "Confirmation",
+      icon: <BookingIcon fontSize="small" />,
+    },
+  ];
 
   // Handle flow form change
   const handleFlowFormChange = (
@@ -180,7 +213,7 @@ const BookingFlows: React.FC = () => {
     const value = e.target.value === "" ? null : Number(e.target.value);
     setFlowForm({
       ...flowForm,
-      event_type: value,
+      event_type: value, // This should be a number, not an EventType object
     });
   };
 
@@ -216,240 +249,11 @@ const BookingFlows: React.FC = () => {
     }
   };
 
-  // Handle step form change
-  const handleStepFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-
-    // Handle nested properties like questionnaire_config.questionnaire
-    if (name.includes(".")) {
-      const [parent, child] = name.split(".");
-      setStepForm({
-        ...stepForm,
-        [parent]: {
-          ...((stepForm[parent as keyof BookingStepFormData] as object) || {}),
-          [child]: type === "checkbox" ? checked : value,
-        },
-      });
-    } else {
-      setStepForm({
-        ...stepForm,
-        [name]: type === "checkbox" ? checked : value,
-      });
-    }
-
-    // Clear error when typing
-    if (
-      stepFormErrors[name as keyof BookingStepFormErrors] ||
-      (name.includes(".") &&
-        stepFormErrors[name.split(".")[0] as keyof BookingStepFormErrors])
-    ) {
-      // Handle nested errors
-      if (name.includes(".")) {
-        const [parent, child] = name.split(".");
-        setStepFormErrors({
-          ...stepFormErrors,
-          [parent]: {
-            ...((stepForm[parent as keyof BookingStepFormData] as object) ||
-              {}),
-            [child]: type === "checkbox" ? checked : value,
-          },
-        });
-      } else {
-        setStepFormErrors({
-          ...stepFormErrors,
-          [name]: undefined,
-        });
-      }
-    }
-  };
-
-  // Handle step type change
-  const handleStepTypeChange = (e: SelectChangeEvent<string>) => {
-    const newStepType = e.target.value as StepType;
-
-    // Initialize config based on step type
-    let configUpdate = {};
-
-    switch (newStepType) {
-      case "QUESTIONNAIRE":
-        configUpdate = {
-          questionnaire_config: {
-            questionnaire: 0,
-            require_all_fields: false,
-          },
-        };
-        break;
-      case "PRODUCT":
-      case "ADDON":
-        configUpdate = {
-          product_config: {
-            min_selection: 1,
-            max_selection: 0,
-            selection_type: "SINGLE",
-            product_items: [],
-          },
-        };
-        break;
-      case "DATE":
-        configUpdate = {
-          date_config: {
-            min_days_in_future: 1,
-            max_days_in_future: 365,
-            allow_time_selection: true,
-            buffer_before_event: 0,
-            buffer_after_event: 0,
-          },
-        };
-        break;
-      case "CUSTOM":
-        configUpdate = {
-          custom_config: {
-            html_content: "",
-            use_react_component: false,
-            component_name: "",
-            component_props: {},
-          },
-        };
-        break;
-    }
-
-    setStepForm({
-      ...stepForm,
-      step_type: newStepType,
-      ...configUpdate,
-    });
-  };
-
-  // Handle questionnaire change
-  const handleQuestionnaireChange = (e: SelectChangeEvent<string | number>) => {
-    const value = e.target.value === "" ? 0 : Number(e.target.value);
-    setStepForm({
-      ...stepForm,
-      questionnaire_config: {
-        ...stepForm.questionnaire_config!,
-        questionnaire: value,
-      },
-    });
-  };
-
-  // Handle product selection type change
-  const handleProductSelectionTypeChange = (
-    e: SelectChangeEvent<string | number>
-  ) => {
-    const value = e.target.value as "SINGLE" | "MULTIPLE";
-    setStepForm({
-      ...stepForm,
-      product_config: {
-        ...stepForm.product_config!,
-        selection_type: value,
-      },
-    });
-  };
-
-  // Validate step form
-  const validateStepForm = (): boolean => {
-    const errors: BookingStepFormErrors = {};
-    let isValid = true;
-
-    if (!stepForm.name.trim()) {
-      errors.name = "Name is required";
-      isValid = false;
-    }
-
-    if (!stepForm.step_type) {
-      errors.step_type = "Step type is required";
-      isValid = false;
-    }
-
-    // Validate questionnaire config if step type is QUESTIONNAIRE
-    if (
-      stepForm.step_type === "QUESTIONNAIRE" &&
-      stepForm.questionnaire_config
-    ) {
-      if (!stepForm.questionnaire_config.questionnaire) {
-        errors.questionnaire_config = {
-          questionnaire: "Questionnaire is required",
-        };
-        isValid = false;
-      }
-    }
-
-    setStepFormErrors(errors);
-    return isValid;
-  };
-
-  // Handle save step
-  const handleSaveStep = () => {
-    if (!selectedFlow) return;
-
-    if (validateStepForm()) {
-      if (editMode && selectedStepId) {
-        updateStep({
-          id: selectedStepId,
-          stepData: stepForm,
-          flowId: selectedFlow.id,
-        });
-      } else {
-        createStep({
-          flowId: selectedFlow.id,
-          stepData: stepForm,
-        });
-      }
-      setStepDialogOpen(false);
-      resetStepForm();
-    }
-  };
-
-  // Handle drag end for reordering steps
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || !selectedFlow) return;
-
-    const startIndex = result.source.index;
-    const endIndex = result.destination.index;
-
-    if (startIndex === endIndex) return;
-
-    const filteredSteps = getFilteredSteps();
-
-    // Create a copy of the filtered steps for reordering
-    const newSteps = Array.from(filteredSteps);
-    const [movedStep] = newSteps.splice(startIndex, 1);
-    newSteps.splice(endIndex, 0, movedStep);
-
-    // Create the order mapping based on the new positions
-    const orderMapping: { [key: string]: number } = {};
-    newSteps.forEach((step, index) => {
-      orderMapping[step.id.toString()] = index + 1;
-    });
-
-    // Call the reorderSteps mutation with the new order mapping
-    reorderSteps({
-      flow_id: selectedFlow.id,
-      order_mapping: orderMapping,
-    });
-  };
-
   // Reset flow form
   const resetFlowForm = () => {
     setFlowForm(initialFlowForm);
     setFlowFormErrors({});
     setEditMode(false);
-  };
-
-  // Reset step form
-  const resetStepForm = () => {
-    // Set default order to next available order
-    const nextOrder = getFilteredSteps().length + 1;
-    setStepForm({
-      ...initialStepForm,
-      step_type: currentTab,
-      order: nextOrder,
-    });
-    setStepFormErrors({});
-    setEditMode(false);
-    setSelectedStepId(null);
   };
 
   // Handle edit flow
@@ -469,70 +273,19 @@ const BookingFlows: React.FC = () => {
     setFlowDialogOpen(true);
   };
 
-  // Handle edit step
-  const handleEditStep = (step: BookingStep) => {
-    // Create a form data object based on the step type and configuration
-    const formData: BookingStepFormData = {
-      name: step.name,
-      step_type: step.step_type,
-      description: step.description,
-      instructions: step.instructions,
-      order: step.order,
-      is_required: step.is_required,
-      is_visible: step.is_visible,
-    };
-
-    // Add configuration based on step type
-    if (step.step_type === "QUESTIONNAIRE" && step.questionnaire_config) {
-      formData.questionnaire_config = {
-        questionnaire:
-          typeof step.questionnaire_config.questionnaire === "number"
-            ? step.questionnaire_config.questionnaire
-            : step.questionnaire_config.questionnaire.id,
-        require_all_fields: step.questionnaire_config.require_all_fields,
-      };
-    } else if (
-      (step.step_type === "PRODUCT" || step.step_type === "ADDON") &&
-      step.product_config
-    ) {
-      formData.product_config = {
-        min_selection: step.product_config.min_selection,
-        max_selection: step.product_config.max_selection,
-        selection_type: step.product_config.selection_type,
-      };
-    } else if (step.step_type === "DATE" && step.date_config) {
-      formData.date_config = {
-        min_days_in_future: step.date_config.min_days_in_future,
-        max_days_in_future: step.date_config.max_days_in_future,
-        allow_time_selection: step.date_config.allow_time_selection,
-        buffer_before_event: step.date_config.buffer_before_event,
-        buffer_after_event: step.date_config.buffer_after_event,
-      };
-    } else if (step.step_type === "CUSTOM" && step.custom_config) {
-      formData.custom_config = {
-        html_content: step.custom_config.html_content,
-        use_react_component: step.custom_config.use_react_component,
-        component_name: step.custom_config.component_name,
-        component_props: step.custom_config.component_props,
-      };
-    }
-
-    setStepForm(formData);
-    setSelectedStepId(step.id);
-    setEditMode(true);
-    setStepDialogOpen(true);
-  };
-
   // Handle flow selection
   const handleSelectFlow = (flow: BookingFlow) => {
     setSelectedFlow(flow);
     // Reset to INTRO tab when selecting a new flow
-    setCurrentTab("INTRO");
+    setCurrentStep("INTRO");
   };
 
   // Handle tab change
-  const handleTabChange = (tab: StepType) => {
-    setCurrentTab(tab);
+  const handleStepChange = (
+    event: React.SyntheticEvent,
+    newValue: StepTabType
+  ) => {
+    setCurrentStep(newValue);
   };
 
   // Handle delete flow confirmation
@@ -544,60 +297,69 @@ const BookingFlows: React.FC = () => {
     }
   };
 
-  // Handle delete step confirmation
-  const handleDeleteStep = () => {
-    if (selectedStepId && selectedFlow) {
-      deleteStep({
-        id: selectedStepId,
-        flowId: selectedFlow.id,
-      });
-      setDeleteStepDialogOpen(false);
-      setSelectedStepId(null);
+  // Handle saving configuration updates
+  // Updated handleConfigSave function for BookingFlows.tsx
+  const handleConfigSave = (configData: any) => {
+    if (selectedFlow && flowDetails) {
+      switch (currentStep) {
+        case "INTRO":
+          updateIntroConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "DATE":
+          updateDateConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "QUESTIONNAIRE":
+          updateQuestionnaireConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "PACKAGE":
+          updatePackageConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "ADDON":
+          updateAddonConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "SUMMARY":
+          updateSummaryConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "PAYMENT":
+          updatePaymentConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        case "CONFIRMATION":
+          updateConfirmationConfig({
+            flowId: selectedFlow.id,
+            configData,
+          });
+          break;
+        default:
+          console.error(`Unknown step: ${currentStep}`);
+      }
     }
-  };
-
-  // Handle adding a product item
-  const handleAddProductItem = (
-    configId: number,
-    itemData: ProductStepItemFormData
-  ) => {
-    createProductItem({ configId, itemData });
-  };
-
-  // Handle updating a product item
-  const handleUpdateProductItem = (
-    id: number,
-    itemData: Partial<ProductStepItemFormData>,
-    configId: number
-  ) => {
-    updateProductItem({ id, itemData, configId });
-  };
-
-  // Handle deleting a product item
-  const handleDeleteProductItem = (id: number, configId: number) => {
-    deleteProductItem({ id, configId });
-  };
-
-  // Get current step's product config ID if it exists
-  const getCurrentProductConfigId = (): number | undefined => {
-    if (!selectedStepId || !flowSteps) return undefined;
-
-    const step = flowSteps.find((s) => s.id === selectedStepId);
-    if (
-      step &&
-      (step.step_type === "PRODUCT" || step.step_type === "ADDON") &&
-      step.product_config
-    ) {
-      return step.product_config.id;
-    }
-
-    return undefined;
   };
 
   return (
     <SettingsLayout
       title="Booking Flows"
-      description="Manage booking flows for your events"
+      description="Manage booking flows with fixed steps for your events"
     >
       <Box sx={{ display: "flex", height: "100%" }}>
         {/* Left sidebar - Flow list */}
@@ -692,15 +454,17 @@ const BookingFlows: React.FC = () => {
           ) : (
             <List sx={{ overflow: "auto", maxHeight: "calc(100vh - 300px)" }}>
               {flows
-                .filter((flow) => !showActiveOnly || flow.is_active)
-                .map((flow) => (
+                .filter(
+                  (flow: BookingFlow) => !showActiveOnly || flow.is_active
+                )
+                .map((flow: BookingFlow) => (
                   <ListItem key={flow.id} disablePadding sx={{ mb: 1 }}>
                     <BookingFlowItem
                       flow={flow}
                       selected={selectedFlow?.id === flow.id}
                       onSelect={handleSelectFlow}
                       onEdit={handleEditFlow}
-                      onDelete={(flow) => {
+                      onDelete={(flow: BookingFlow) => {
                         setSelectedFlow(flow);
                         setDeleteFlowDialogOpen(true);
                       }}
@@ -711,7 +475,7 @@ const BookingFlows: React.FC = () => {
           )}
         </Box>
 
-        {/* Main content area - Steps */}
+        {/* Main content area - Step configuration */}
         <Box sx={{ flexGrow: 1 }}>
           {selectedFlow ? (
             <>
@@ -750,93 +514,85 @@ const BookingFlows: React.FC = () => {
 
               <Divider sx={{ mb: 2 }} />
 
-              {/* Step type tabs */}
-              <BookingStepTabs
-                currentTab={currentTab}
-                onChange={handleTabChange}
-              />
-
-              {/* Steps list */}
-              <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => {
-                    resetStepForm();
-                    setStepDialogOpen(true);
-                  }}
+              {/* Step tabs */}
+              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                <Tabs
+                  value={currentStep}
+                  onChange={handleStepChange}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  aria-label="booking flow step tabs"
                 >
-                  Add Step
-                </Button>
+                  {stepTabs.map((tab) => (
+                    <Tab
+                      key={tab.id}
+                      value={tab.id}
+                      icon={tab.icon}
+                      label={tab.label}
+                      iconPosition="start"
+                    />
+                  ))}
+                </Tabs>
               </Box>
 
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId={`steps-${currentTab}`}>
-                  {(provided) => (
-                    <Box
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      sx={{ mb: 4 }}
-                    >
-                      {getFilteredSteps().length === 0 ? (
-                        <Alert severity="info">
-                          No steps found for this section.
-                          <Button
-                            onClick={() => {
-                              resetStepForm();
-                              setStepDialogOpen(true);
-                            }}
-                            size="small"
-                            sx={{ ml: 1 }}
-                          >
-                            Add a step
-                          </Button>
-                        </Alert>
-                      ) : (
-                        getFilteredSteps().map((step, index) => (
-                          <BookingStepItem
-                            key={step.id}
-                            step={step}
-                            index={index}
-                            onEdit={(step) => {
-                              handleEditStep(step);
-                              setSelectedStepId(step.id);
-                            }}
-                            onDelete={(stepId) => {
-                              setSelectedStepId(stepId);
-                              setDeleteStepDialogOpen(true);
-                            }}
-                            isReordering={isReorderingSteps}
-                          />
-                        ))
-                      )}
-                      {provided.placeholder}
-                    </Box>
-                  )}
-                </Droppable>
-              </DragDropContext>
-
-              {/* Product Items Section (only shown when a product/addon step is selected) */}
-              {selectedStepId && getCurrentProductConfigId() && (
-                <Box sx={{ mt: 4 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Products for this Step
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  <ProductStepItems
-                    configId={getCurrentProductConfigId()!}
-                    products={allProducts.filter((p) => p.is_active)}
-                    onAddItem={handleAddProductItem}
-                    onUpdateItem={handleUpdateProductItem}
-                    onDeleteItem={handleDeleteProductItem}
-                    onReorderItems={reorderProductItems}
-                    isAddingItem={isCreatingProductItem}
-                    isUpdatingItem={isUpdatingProductItem}
-                    isDeletingItem={isDeletingProductItem}
-                    isReorderingItems={isReorderingProductItems}
-                  />
-                </Box>
-              )}
+              {/* Step configuration forms */}
+              <Box sx={{ mt: 3 }}>
+                {flowDetails && !isLoadingFlow && (
+                  <>
+                    {currentStep === "INTRO" && (
+                      <IntroConfigForm
+                        initialConfig={flowDetails.intro_config}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "DATE" && (
+                      <DateConfigForm
+                        initialConfig={flowDetails.date_config}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "QUESTIONNAIRE" && (
+                      <QuestionnaireConfigForm
+                        initialConfig={flowDetails.questionnaire_config}
+                        questionnaires={questionnaires}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "PACKAGE" && (
+                      <PackageConfigForm
+                        initialConfig={flowDetails.package_config}
+                        products={allProducts.filter((p) => p.is_active)}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "ADDON" && (
+                      <AddonConfigForm
+                        initialConfig={flowDetails.addon_config}
+                        products={allProducts.filter((p) => p.is_active)}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "SUMMARY" && (
+                      <SummaryConfigForm
+                        initialConfig={flowDetails.summary_config}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "PAYMENT" && (
+                      <PaymentConfigForm
+                        initialConfig={flowDetails.payment_config}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                    {currentStep === "CONFIRMATION" && (
+                      <ConfirmationConfigForm
+                        initialConfig={flowDetails.confirmation_config}
+                        onSave={handleConfigSave}
+                      />
+                    )}
+                  </>
+                )}
+              </Box>
             </>
           ) : (
             <Box
@@ -857,7 +613,7 @@ const BookingFlows: React.FC = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center">
                 Select a booking flow from the sidebar or create a new one to
-                manage its steps.
+                manage its configuration.
               </Typography>
               <Button
                 variant="contained"
@@ -889,23 +645,6 @@ const BookingFlows: React.FC = () => {
         editMode={editMode}
       />
 
-      {/* Step Dialog */}
-      <BookingStepDialog
-        open={stepDialogOpen}
-        onClose={() => setStepDialogOpen(false)}
-        onSave={handleSaveStep}
-        stepForm={stepForm}
-        stepFormErrors={stepFormErrors}
-        onChange={handleStepFormChange}
-        onStepTypeChange={handleStepTypeChange}
-        onQuestionnaireChange={handleQuestionnaireChange}
-        onProductSelectionTypeChange={handleProductSelectionTypeChange}
-        questionnaires={questionnaires}
-        products={allProducts.filter((p) => p.is_active)}
-        isLoading={isCreatingStep || isUpdatingStep}
-        editMode={editMode}
-      />
-
       {/* Delete Flow Confirmation Dialog */}
       <Dialog
         open={deleteFlowDialogOpen}
@@ -915,8 +654,8 @@ const BookingFlows: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete the booking flow "
-            {selectedFlow?.name}"? This will also delete all associated steps.
-            This action cannot be undone.
+            {selectedFlow?.name}"? This will also delete all associated
+            configurations. This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -929,32 +668,6 @@ const BookingFlows: React.FC = () => {
             startIcon={isDeletingFlow && <CircularProgress size={16} />}
           >
             {isDeletingFlow ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete Step Confirmation Dialog */}
-      <Dialog
-        open={deleteStepDialogOpen}
-        onClose={() => setDeleteStepDialogOpen(false)}
-      >
-        <DialogTitle>Delete Booking Step</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this booking step? This action
-            cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteStepDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDeleteStep}
-            variant="contained"
-            color="error"
-            disabled={isDeletingStep}
-            startIcon={isDeletingStep && <CircularProgress size={16} />}
-          >
-            {isDeletingStep ? "Deleting..." : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

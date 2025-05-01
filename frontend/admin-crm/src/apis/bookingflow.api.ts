@@ -1,15 +1,21 @@
 // frontend/admin-crm/src/apis/bookingflow.api.ts
 import {
+  AddonConfig,
+  AddonItem,
   BookingFlow,
+  BookingFlowDetail, // Added this import
   BookingFlowFormData,
-  BookingFlowResponse,
-  BookingStep,
-  BookingStepFormData,
-  BookingStepResponse,
-  ProductStepItem,
-  ProductStepItemFormData,
-  ReorderProductItemsRequest,
-  ReorderStepsRequest,
+  ConfirmationConfig,
+  DateConfig,
+  // Removed BookingStep imports
+  // Added configuration type imports as needed
+  IntroConfig,
+  PackageConfig,
+  PackageItem,
+  PaymentConfig,
+  QuestionnaireConfig,
+  QuestionnaireItem,
+  SummaryConfig,
 } from "../types/bookingflow.types";
 import { EventType } from "../types/events.types";
 import api from "../utils/api";
@@ -18,6 +24,13 @@ import api from "../utils/api";
 interface EventTypeResponse {
   count: number;
   results: EventType[];
+  next: string | null;
+  previous: string | null;
+}
+
+interface BookingFlowResponse {
+  count: number;
+  results: BookingFlow[];
   next: string | null;
   previous: string | null;
 }
@@ -66,15 +79,17 @@ export const bookingFlowApi = {
   },
 
   /**
-   * Get booking flow by ID
+   * Get booking flow by ID with all configurations
    */
-  getBookingFlowById: async (id: number): Promise<BookingFlow> => {
-    const response = await api.get<BookingFlow>(`/bookingflow/flows/${id}/`);
+  getBookingFlowById: async (id: number): Promise<BookingFlowDetail> => {
+    const response = await api.get<BookingFlowDetail>(
+      `/bookingflow/flows/${id}/`
+    );
     return response.data;
   },
 
   /**
-   * Create a new booking flow
+   * Create a new booking flow with default configurations
    */
   createBookingFlow: async (
     flowData: BookingFlowFormData
@@ -108,148 +123,210 @@ export const bookingFlowApi = {
   },
 
   /**
-   * Get steps for a booking flow
+   * Update intro configuration
    */
-  getStepsForFlow: async (flowId: number): Promise<BookingStep[]> => {
-    const response = await api.get<BookingStep[]>(
-      `/bookingflow/flows/${flowId}/steps/`
+  updateIntroConfig: async (
+    flowId: number,
+    configData: Partial<IntroConfig>
+  ): Promise<IntroConfig> => {
+    const response = await api.patch<IntroConfig>(
+      `/bookingflow/flows/${flowId}/intro_config/`,
+      configData
     );
     return response.data;
   },
 
   /**
-   * Get all steps with optional filtering
+   * Update date configuration
    */
-  getBookingSteps: async (
-    page = 1,
-    flowId?: number
-  ): Promise<BookingStepResponse> => {
-    const params: Record<string, any> = { page };
-
-    if (flowId) {
-      params.booking_flow = flowId;
-    }
-
-    const response = await api.get<BookingStepResponse>("/bookingflow/steps/", {
-      params,
-    });
-    return response.data;
-  },
-
-  /**
-   * Get booking step by ID
-   */
-  getBookingStepById: async (id: number): Promise<BookingStep> => {
-    const response = await api.get<BookingStep>(`/bookingflow/steps/${id}/`);
-    return response.data;
-  },
-
-  /**
-   * Create a new booking step
-   */
-  createBookingStep: async (
-    stepData: BookingStepFormData
-  ): Promise<BookingStep> => {
-    const response = await api.post<BookingStep>(
-      "/bookingflow/steps/",
-      stepData
+  updateDateConfig: async (
+    flowId: number,
+    configData: Partial<DateConfig>
+  ): Promise<DateConfig> => {
+    const response = await api.patch<DateConfig>(
+      `/bookingflow/flows/${flowId}/date_config/`,
+      configData
     );
     return response.data;
   },
 
   /**
-   * Update an existing booking step
+   * Update questionnaire configuration
    */
-  updateBookingStep: async (
-    id: number,
-    stepData: Partial<BookingStepFormData>
-  ): Promise<BookingStep> => {
-    const response = await api.patch<BookingStep>(
-      `/bookingflow/steps/${id}/`,
-      stepData
+  updateQuestionnaireConfig: async (
+    flowId: number,
+    configData: Partial<QuestionnaireConfig>
+  ): Promise<QuestionnaireConfig> => {
+    const response = await api.patch<QuestionnaireConfig>(
+      `/bookingflow/flows/${flowId}/questionnaire_config/`,
+      configData
     );
     return response.data;
   },
 
   /**
-   * Delete a booking step
+   * Add questionnaire item to config
    */
-  deleteBookingStep: async (id: number): Promise<void> => {
-    await api.delete(`/bookingflow/steps/${id}/`);
-  },
-
-  /**
-   * Reorder steps within a booking flow
-   */
-  reorderSteps: async (data: ReorderStepsRequest): Promise<BookingStep[]> => {
-    const response = await api.post<BookingStep[]>(
-      "/bookingflow/steps/reorder/",
-      data
-    );
-    return response.data;
-  },
-
-  /**
-   * Get product items for a configuration
-   */
-  getProductItems: async (configId: number): Promise<ProductStepItem[]> => {
-    const response = await api.get<ProductStepItem[]>(
-      "/bookingflow/product-items/by_config/",
+  addQuestionnaireItem: async (
+    configId: number,
+    itemData: Partial<QuestionnaireItem>
+  ): Promise<QuestionnaireItem> => {
+    const response = await api.post<QuestionnaireItem>(
+      `/bookingflow/questionnaire-items/`,
       {
-        params: { config_id: configId },
+        ...itemData,
+        config: configId,
       }
     );
     return response.data;
   },
 
   /**
-   * Create a new product item
+   * Remove questionnaire item from config
    */
-  createProductItem: async (
-    configId: number,
-    itemData: ProductStepItemFormData
-  ): Promise<ProductStepItem> => {
-    const data = {
-      ...itemData,
-      config: configId,
-    };
-    const response = await api.post<ProductStepItem>(
-      "/bookingflow/product-items/",
-      data
+  removeQuestionnaireItem: async (itemId: number): Promise<void> => {
+    await api.delete(`/bookingflow/questionnaire-items/${itemId}/`);
+  },
+
+  /**
+   * Update package configuration
+   */
+  updatePackageConfig: async (
+    flowId: number,
+    configData: Partial<PackageConfig>
+  ): Promise<PackageConfig> => {
+    const response = await api.patch<PackageConfig>(
+      `/bookingflow/flows/${flowId}/package_config/`,
+      configData
     );
     return response.data;
   },
 
   /**
-   * Update an existing product item
+   * Add package item to config
    */
-  updateProductItem: async (
-    id: number,
-    itemData: Partial<ProductStepItemFormData>
-  ): Promise<ProductStepItem> => {
-    const response = await api.patch<ProductStepItem>(
-      `/bookingflow/product-items/${id}/`,
+  addPackageItem: async (
+    configId: number,
+    itemData: Partial<PackageItem>
+  ): Promise<PackageItem> => {
+    const response = await api.post<PackageItem>(
+      `/bookingflow/package-items/`,
+      {
+        ...itemData,
+        config: configId,
+      }
+    );
+    return response.data;
+  },
+
+  /**
+   * Update package item
+   */
+  updatePackageItem: async (
+    itemId: number,
+    itemData: Partial<PackageItem>
+  ): Promise<PackageItem> => {
+    const response = await api.patch<PackageItem>(
+      `/bookingflow/package-items/${itemId}/`,
       itemData
     );
     return response.data;
   },
 
   /**
-   * Delete a product item
+   * Remove package item from config
    */
-  deleteProductItem: async (id: number): Promise<void> => {
-    await api.delete(`/bookingflow/product-items/${id}/`);
+  removePackageItem: async (itemId: number): Promise<void> => {
+    await api.delete(`/bookingflow/package-items/${itemId}/`);
   },
 
   /**
-   * Reorder product items within a configuration
+   * Update addon configuration
    */
-  reorderProductItems: async (
-    data: ReorderProductItemsRequest
-  ): Promise<ProductStepItem[]> => {
-    const response = await api.post<ProductStepItem[]>(
-      "/bookingflow/product-items/reorder/",
-      data
+  updateAddonConfig: async (
+    flowId: number,
+    configData: Partial<AddonConfig>
+  ): Promise<AddonConfig> => {
+    const response = await api.patch<AddonConfig>(
+      `/bookingflow/flows/${flowId}/addon_config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Add addon item to config
+   */
+  addAddonItem: async (
+    configId: number,
+    itemData: Partial<AddonItem>
+  ): Promise<AddonItem> => {
+    const response = await api.post<AddonItem>(`/bookingflow/addon-items/`, {
+      ...itemData,
+      config: configId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Update addon item
+   */
+  updateAddonItem: async (
+    itemId: number,
+    itemData: Partial<AddonItem>
+  ): Promise<AddonItem> => {
+    const response = await api.patch<AddonItem>(
+      `/bookingflow/addon-items/${itemId}/`,
+      itemData
+    );
+    return response.data;
+  },
+
+  /**
+   * Remove addon item from config
+   */
+  removeAddonItem: async (itemId: number): Promise<void> => {
+    await api.delete(`/bookingflow/addon-items/${itemId}/`);
+  },
+
+  /**
+   * Update summary configuration
+   */
+  updateSummaryConfig: async (
+    flowId: number,
+    configData: Partial<SummaryConfig>
+  ): Promise<SummaryConfig> => {
+    const response = await api.patch<SummaryConfig>(
+      `/bookingflow/flows/${flowId}/summary_config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Update payment configuration
+   */
+  updatePaymentConfig: async (
+    flowId: number,
+    configData: Partial<PaymentConfig>
+  ): Promise<PaymentConfig> => {
+    const response = await api.patch<PaymentConfig>(
+      `/bookingflow/flows/${flowId}/payment_config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Update confirmation configuration
+   */
+  updateConfirmationConfig: async (
+    flowId: number,
+    configData: Partial<ConfirmationConfig>
+  ): Promise<ConfirmationConfig> => {
+    const response = await api.patch<ConfirmationConfig>(
+      `/bookingflow/flows/${flowId}/confirmation_config/`,
+      configData
     );
     return response.data;
   },

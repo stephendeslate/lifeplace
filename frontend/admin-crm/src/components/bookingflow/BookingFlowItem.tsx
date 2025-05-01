@@ -29,7 +29,7 @@ export const BookingFlowItem: React.FC<BookingFlowItemProps> = ({
   const eventTypeName =
     typeof flow.event_type === "object"
       ? flow.event_type.name
-      : flow.event_type_details?.name || "Unknown";
+      : flow.event_type || "Unknown";
 
   return (
     <Card
@@ -90,19 +90,15 @@ export const BookingFlowItem: React.FC<BookingFlowItemProps> = ({
               color: selected ? "primary.contrastText" : undefined,
             }}
           />
-          {flow.steps_count !== undefined && (
-            <Chip
-              label={`${flow.steps_count} ${
-                flow.steps_count === 1 ? "Step" : "Steps"
-              }`}
-              size="small"
-              variant={selected ? "filled" : "outlined"}
-              sx={{
-                bgcolor: selected ? "primary.dark" : undefined,
-                color: selected ? "primary.contrastText" : undefined,
-              }}
-            />
-          )}
+          <Chip
+            label="Fixed Steps"
+            size="small"
+            variant={selected ? "filled" : "outlined"}
+            sx={{
+              bgcolor: selected ? "primary.dark" : undefined,
+              color: selected ? "primary.contrastText" : undefined,
+            }}
+          />
         </Box>
       </CardActionArea>
 

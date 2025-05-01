@@ -16,6 +16,7 @@ import useAuth from "./hooks/useAuth";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import BookingPage from "./pages/booking/BookingPage";
 import HomePage from "./pages/home/HomePage";
 import Profile from "./pages/profile/Profile";
 import theme from "./theme";
@@ -54,6 +55,22 @@ const AppWithAuth: React.FC = () => {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking"
+        element={
+          <ProtectedRoute>
+            <BookingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/booking/:eventTypeId"
+        element={
+          <ProtectedRoute>
+            <BookingPage />
           </ProtectedRoute>
         }
       />
