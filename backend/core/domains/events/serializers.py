@@ -5,6 +5,7 @@ from core.domains.workflows.basic_serializers import (
     WorkflowStageSerializer,
     WorkflowTemplateSerializer,
 )
+from django.db import transaction
 from rest_framework import serializers
 
 from .basic_serializers import EventTypeSerializer
@@ -48,9 +49,13 @@ class EventTaskDetailSerializer(EventTaskSerializer):
 
 
 class EventProductOptionSerializer(serializers.ModelSerializer):
-    """Serializer for the EventProductOption model"""
     product_name = serializers.CharField(source='product_option.name', read_only=True)
-    
+    event = serializers.PrimaryKeyRelatedField(
+        queryset=Event.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = EventProductOption
         fields = [
@@ -207,39 +212,35 @@ class EventDetailSerializer(EventSerializer):
 
 
 class EventCreateUpdateSerializer(EventSerializer):
-    """Serializer for creating and updating Events with nested data"""
     tasks = EventTaskSerializer(many=True, required=False)
     event_products = EventProductOptionSerializer(many=True, required=False)
-    
+
     class Meta(EventSerializer.Meta):
         fields = EventSerializer.Meta.fields + ['tasks', 'event_products']
-    
+
     def create(self, validated_data):
-        tasks_data = validated_data.pop('tasks', [])
-        event_products_data = validated_data.pop('event_products', [])
-        
-        event = Event.objects.create(**validated_data)
-        
-        # Create tasks
-        for task_data in tasks_data:
-            task_data['event'] = event
-            EventTask.objects.create(**task_data)
-        
-        # Create event products
-        for product_data in event_products_data:
-            product_data['event'] = event
-            EventProductOption.objects.create(**product_data)
-        
-        # Create timeline entry for event creation
-        EventTimeline.objects.create(
-            event=event,
-            action_type='SYSTEM_UPDATE',
-            description='Event created',
-            actor=self.context.get('request').user if self.context.get('request') else None,
-            is_public=True
-        )
-        
-        return event
+        print("EventCreateUpdateSerializer validated data:", validated_data)  # Debug
+        with transaction.atomic():
+            tasks_data = validated_data.pop('tasks', [])
+            event_products_data = validated_data.pop('event_products', [])
+            print("Event products data:", event_products_data)  # Debug
+            event = Event.objects.create(**validated_data)
+            print("Event created with ID:", event.id)  # Debug
+            for product_data in event_products_data:
+                print("Creating EventProductOption with data:", product_data)  # Debug
+                product_data['event'] = event
+                EventProductOption.objects.create(**product_data)
+            for task_data in tasks_data:
+                task_data['event'] = event
+                EventTask.objects.create(**task_data)
+            EventTimeline.objects.create(
+                event=event,
+                action_type='SYSTEM_UPDATE',
+                description='Event created',
+                actor=self.context.get('request').user if self.context.get('request') else None,
+                is_public=True
+            )
+            return event
     
     def update(self, instance, validated_data):
         tasks_data = validated_data.pop('tasks', None)

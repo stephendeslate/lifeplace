@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import ToastProvider from "./components/common/ToastProvider";
 import { AuthProvider } from "./contexts/AuthContext";
+import { BookingProvider } from "./contexts/BookingContext";
 import useAuth from "./hooks/useAuth";
 import AcceptInvitation from "./pages/auth/AcceptInvitation";
 import Login from "./pages/auth/Login";
@@ -42,42 +43,44 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
 // App component with auth provider
 const AppWithAuth: React.FC = () => {
   return (
-    <Routes>
-      {/* Public routes - these don't require authentication */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/accept-invitation/:id" element={<AcceptInvitation />} />
+    <BookingProvider>
+      <Routes>
+        {/* Public routes - these don't require authentication */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/accept-invitation/:id" element={<AcceptInvitation />} />
 
-      {/* Protected routes - these require authentication */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/booking"
-        element={
-          <ProtectedRoute>
-            <BookingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/booking/:eventTypeId"
-        element={
-          <ProtectedRoute>
-            <BookingPage />
-          </ProtectedRoute>
-        }
-      />
+        {/* Protected routes - these require authentication */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking"
+          element={
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/:eventTypeId"
+          element={
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Default redirect */}
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BookingProvider>
   );
 };
 

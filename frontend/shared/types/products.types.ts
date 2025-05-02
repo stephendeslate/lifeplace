@@ -1,4 +1,4 @@
-// frontend/admin-crm/src/types/products.types.ts
+// frontend/admin-crm/src/shared/types/products.types.ts
 import { EventType } from "./events.types";
 
 // Common pagination response interface

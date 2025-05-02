@@ -18,7 +18,15 @@ from .exceptions import (
     InvalidFileUpload,
     InvalidWorkflowStageTransition,
 )
-from .models import Event, EventFeedback, EventFile, EventTask, EventTimeline, EventType
+from .models import (
+    Event,
+    EventFeedback,
+    EventFile,
+    EventProductOption,
+    EventTask,
+    EventTimeline,
+    EventType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -141,36 +149,28 @@ class EventService:
             raise EventNotFound()
     
     @staticmethod
-    def create_event(event_data, user):
-        """Create a new event"""
+    def create_event(validated_data, user):
+        print("EventService.create_event validated data:", validated_data)  # Debug
         with transaction.atomic():
-            # Extract nested data if present
-            tasks_data = event_data.pop('tasks', [])
-            products_data = event_data.pop('event_products', [])
-            
-            # Create the event
-            event = Event.objects.create(**event_data)
-            
-            # Create tasks
+            tasks_data = validated_data.pop('tasks', [])
+            event_products_data = validated_data.pop('event_products', [])
+            print("EventService event products data:", event_products_data)  # Debug
+            event = Event.objects.create(**validated_data)
+            print("EventService event created with ID:", event.id)  # Debug
             for task_data in tasks_data:
                 task_data['event'] = event
                 EventTask.objects.create(**task_data)
-            
-            # Create product options
-            for product_data in products_data:
+            for product_data in event_products_data:
+                print("EventService creating EventProductOption with data:", product_data)  # Debug
                 product_data['event'] = event
-                event.event_products.create(**product_data)
-            
-            # Add timeline entry
+                EventProductOption.objects.create(**product_data)
             EventTimeline.objects.create(
                 event=event,
                 action_type='SYSTEM_UPDATE',
-                description=f"Event created",
+                description='Event created',
                 actor=user,
                 is_public=True
             )
-            
-            logger.info(f"Created new event: {event}")
             return event
     
     @staticmethod

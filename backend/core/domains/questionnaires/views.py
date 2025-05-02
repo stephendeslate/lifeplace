@@ -1,5 +1,5 @@
 # backend/core/domains/questionnaires/views.py
-from core.utils.permissions import IsAdmin, IsOwnerOrAdmin
+from core.utils.permissions import IsAdmin, IsAdminOrClient, IsOwnerOrAdmin
 from django.db import transaction
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -25,7 +25,7 @@ class QuestionnaireViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing questionnaires
     """
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrClient]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
     

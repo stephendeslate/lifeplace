@@ -1,4 +1,4 @@
-// frontend/admin-crm/src/types/questionnaires.types.ts
+// frontend/admin-crm/src/shared/types/questionnaires.types.ts
 import { EventType } from "./events.types";
 
 // Common pagination response interface

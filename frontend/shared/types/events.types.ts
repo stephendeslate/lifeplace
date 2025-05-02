@@ -1,4 +1,4 @@
-// frontend/admin-crm/src/types/events.types.ts
+// frontend/admin-crm/src/shared/types/events.types.ts
 import { User } from "./auth.types";
 import { ProductOption } from "./products.types";
 import { WorkflowStage, WorkflowTemplate } from "./workflows.types";

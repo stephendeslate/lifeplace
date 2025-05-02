@@ -8,7 +8,15 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from .models import Event, EventFeedback, EventFile, EventTask, EventTimeline, EventType
+from .models import (
+    Event,
+    EventFeedback,
+    EventFile,
+    EventProductOption,
+    EventTask,
+    EventTimeline,
+    EventType,
+)
 from .serializers import (
     EventCreateUpdateSerializer,
     EventDetailSerializer,
@@ -104,7 +112,7 @@ class EventViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing events
     """
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrClient]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name', 'client__first_name', 'client__last_name', 'client__email']
     
@@ -334,6 +342,15 @@ class EventTaskViewSet(viewsets.ModelViewSet):
         
         return Response(self.get_serializer(task).data)
 
+class EventProductOptionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing event product options
+    """
+    serializer_class = EventProductOptionSerializer
+    permission_classes = [IsAdminOrClient]
+    
+    def get_queryset(self):
+        return EventProductOption.objects.all()
 
 class EventFileViewSet(viewsets.ModelViewSet):
     """
