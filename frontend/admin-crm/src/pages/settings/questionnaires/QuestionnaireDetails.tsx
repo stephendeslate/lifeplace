@@ -316,10 +316,6 @@ const QuestionnaireDetails: React.FC = () => {
                   pl: { md: 3 },
                 }}
               >
-                <Typography variant="subtitle2" color="text.secondary">
-                  Display Order
-                </Typography>
-                <Typography variant="h6">{questionnaire.order}</Typography>
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"

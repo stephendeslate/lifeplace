@@ -61,9 +61,33 @@ class QuestionnaireDetailSerializer(QuestionnaireSerializer):
         fields = QuestionnaireSerializer.Meta.fields + ['fields']
 
 
+# Modified serializer class to fix the issue
+class QuestionnaireFieldCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating questionnaire fields - without requiring questionnaire"""
+    class Meta:
+        model = QuestionnaireField
+        fields = ['name', 'type', 'required', 'order', 'options']
+    
+    def validate(self, data):
+        """Validate field data based on field type"""
+        field_type = data.get('type')
+        options = data.get('options')
+        
+        # Make sure select and multi-select have options
+        if field_type in ['select', 'multi-select'] and (not options or len(options) == 0):
+            raise OptionsRequired()
+        
+        # Make sure field type is valid
+        valid_types = [choice[0] for choice in QuestionnaireField.FIELD_TYPES]
+        if field_type not in valid_types:
+            raise InvalidFieldType(detail=f"Field type must be one of: {', '.join(valid_types)}")
+        
+        return data
+
+
 class QuestionnaireWithFieldsSerializer(QuestionnaireSerializer):
     """Serializer for creating/updating Questionnaire with nested fields"""
-    fields = QuestionnaireFieldSerializer(many=True, required=False)
+    fields = QuestionnaireFieldCreateSerializer(many=True, required=False)
     
     class Meta(QuestionnaireSerializer.Meta):
         fields = QuestionnaireSerializer.Meta.fields + ['fields']
@@ -74,8 +98,8 @@ class QuestionnaireWithFieldsSerializer(QuestionnaireSerializer):
         
         # Create nested fields
         for field_data in fields_data:
-            field_data['questionnaire'] = questionnaire
-            QuestionnaireField.objects.create(**field_data)
+            # Don't need to add questionnaire here - will be done in create
+            QuestionnaireField.objects.create(questionnaire=questionnaire, **field_data)
         
         return questionnaire
     
@@ -92,8 +116,7 @@ class QuestionnaireWithFieldsSerializer(QuestionnaireSerializer):
             # Clear existing fields and create new ones
             instance.fields.all().delete()
             for field_data in fields_data:
-                field_data['questionnaire'] = instance
-                QuestionnaireField.objects.create(**field_data)
+                QuestionnaireField.objects.create(questionnaire=instance, **field_data)
         
         return instance
 

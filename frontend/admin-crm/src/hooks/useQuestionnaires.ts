@@ -27,8 +27,23 @@ export const useQuestionnaires = (page = 1, filters?: QuestionnaireFilters) => {
 
   // Mutation to create questionnaire
   const createQuestionnaireMutation = useMutation({
-    mutationFn: (questionnaireData: QuestionnaireFormData) =>
-      questionnairesApi.createQuestionnaire(questionnaireData),
+    mutationFn: (questionnaireData: QuestionnaireFormData) => {
+      // Create a copy of the data so we don't modify the original
+      const dataToSend = { ...questionnaireData };
+
+      // If there are fields, prepare them for the API
+      if (dataToSend.fields && dataToSend.fields.length > 0) {
+        // Map fields but REMOVE the questionnaire property if it exists
+        // The backend will handle this association
+        dataToSend.fields = dataToSend.fields.map((field) => {
+          // Create a new object without the questionnaire property
+          const { questionnaire, ...fieldWithoutQuestionnaire } = field;
+          return fieldWithoutQuestionnaire;
+        });
+      }
+
+      return questionnairesApi.createQuestionnaire(dataToSend);
+    },
     onSuccess: (data) => {
       toast.success(`Questionnaire "${data.name}" created successfully`);
       // Invalidate cache to refresh data

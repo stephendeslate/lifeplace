@@ -90,7 +90,11 @@ const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
     }
   };
 
-  const handleAddField = () => {
+  const handleAddField = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent default to ensure it doesn't submit the form
+    e.preventDefault();
+    e.stopPropagation();
+
     setEditingField(null);
     setEditingFieldIndex(null);
     setShowFieldForm(true);
@@ -158,17 +162,13 @@ const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
       isValid = false;
     }
 
-    if (formData.order <= 0) {
-      newErrors.order = "Order must be a positive number";
-      isValid = false;
-    }
-
     setFormErrors(newErrors);
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (validateForm()) {
       onSubmit(formData);
@@ -176,7 +176,7 @@ const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate>
+    <Box component="form" onSubmit={handleFormSubmit} noValidate>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -217,20 +217,6 @@ const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Order"
-            name="order"
-            type="number"
-            value={formData.order}
-            onChange={handleChange}
-            error={!!formErrors.order}
-            helperText={formErrors.order}
-            inputProps={{ min: 1 }}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
           <FormGroup>
             <FormControlLabel
               control={
@@ -256,6 +242,7 @@ const QuestionnaireForm: React.FC<QuestionnaireFormProps> = ({
               color="primary"
               onClick={handleAddField}
               disabled={showFieldForm}
+              type="button" // Explicitly set button type to prevent form submission
             >
               Add Field
             </Button>

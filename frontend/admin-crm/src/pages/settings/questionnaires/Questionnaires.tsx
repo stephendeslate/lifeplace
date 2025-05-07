@@ -96,11 +96,13 @@ const Questionnaires: React.FC = () => {
     handleFilterChange("is_active", e.target.checked);
   };
 
-  const toggleFilters = () => {
+  const toggleFilters = (e: React.MouseEvent) => {
+    e.preventDefault();
     setShowFilters(!showFilters);
   };
 
-  const resetFilters = () => {
+  const resetFilters = (e: React.MouseEvent) => {
+    e.preventDefault();
     setFilters({});
   };
 
@@ -109,7 +111,8 @@ const Questionnaires: React.FC = () => {
     setCreateDialogOpen(false);
   };
 
-  const handleDeleteQuestionnaire = () => {
+  const handleDeleteQuestionnaire = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (selectedQuestionnaireId) {
       deleteQuestionnaire(selectedQuestionnaireId);
       setDeleteDialogOpen(false);
@@ -119,6 +122,19 @@ const Questionnaires: React.FC = () => {
 
   const handleViewQuestionnaire = (questionnaire: any) => {
     navigate(`/settings/questionnaires/${questionnaire.id}`);
+  };
+
+  const openCreateDialog = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setCreateDialogOpen(true);
+  };
+
+  const closeCreateDialog = () => {
+    setCreateDialogOpen(false);
+  };
+
+  const closeDeleteDialog = () => {
+    setDeleteDialogOpen(false);
   };
 
   return (
@@ -152,6 +168,7 @@ const Questionnaires: React.FC = () => {
               startIcon={<FilterIcon />}
               onClick={toggleFilters}
               size="medium"
+              type="button"
             >
               Filters
             </Button>
@@ -162,8 +179,9 @@ const Questionnaires: React.FC = () => {
               fullWidth
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => setCreateDialogOpen(true)}
+              onClick={openCreateDialog}
               size="medium"
+              type="button"
             >
               New
             </Button>
@@ -211,7 +229,7 @@ const Questionnaires: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
-                <Button variant="text" onClick={resetFilters}>
+                <Button variant="text" onClick={resetFilters} type="button">
                   Reset Filters
                 </Button>
               </Grid>
@@ -245,7 +263,8 @@ const Questionnaires: React.FC = () => {
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={openCreateDialog}
+            type="button"
           >
             Create Questionnaire
           </Button>
@@ -269,7 +288,7 @@ const Questionnaires: React.FC = () => {
       {/* Create Questionnaire Dialog */}
       <Dialog
         open={createDialogOpen}
-        onClose={() => setCreateDialogOpen(false)}
+        onClose={closeCreateDialog}
         maxWidth="md"
         fullWidth
       >
@@ -287,10 +306,7 @@ const Questionnaires: React.FC = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
+      <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
         <DialogTitle>Delete Questionnaire</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -299,12 +315,15 @@ const Questionnaires: React.FC = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={closeDeleteDialog} type="button">
+            Cancel
+          </Button>
           <Button
             onClick={handleDeleteQuestionnaire}
             color="error"
             variant="contained"
             disabled={isDeleting}
+            type="button"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>

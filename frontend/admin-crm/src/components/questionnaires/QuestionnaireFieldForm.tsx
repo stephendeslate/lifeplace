@@ -90,7 +90,11 @@ const QuestionnaireFieldForm: React.FC<QuestionnaireFieldFormProps> = ({
     });
   };
 
-  const handleAddOption = () => {
+  const handleAddOption = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent default to ensure it doesn't submit any form
+    e.preventDefault();
+    e.stopPropagation();
+
     if (!newOption.trim()) return;
 
     if (formData.options?.includes(newOption.trim())) {
@@ -151,16 +155,24 @@ const QuestionnaireFieldForm: React.FC<QuestionnaireFieldFormProps> = ({
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (validateForm()) {
       onSubmit(formData);
     }
   };
 
+  const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onCancel();
+  };
+
   return (
-    <Box component="form" onSubmit={handleSubmit} noValidate>
+    // IMPORTANT CHANGE: Using a div instead of a form to prevent nested forms
+    <Box>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <TextField
@@ -248,6 +260,7 @@ const QuestionnaireFieldForm: React.FC<QuestionnaireFieldFormProps> = ({
                     onClick={handleAddOption}
                     fullWidth
                     sx={{ height: "100%" }}
+                    type="button"
                   >
                     Add
                   </Button>
@@ -284,10 +297,15 @@ const QuestionnaireFieldForm: React.FC<QuestionnaireFieldFormProps> = ({
           <Box
             sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 2 }}
           >
-            <Button variant="outlined" onClick={onCancel}>
+            <Button variant="outlined" onClick={handleCancel} type="button">
               Cancel
             </Button>
-            <Button type="submit" variant="contained" color="primary">
+            <Button
+              onClick={handleFormSubmit}
+              variant="contained"
+              color="primary"
+              type="button"
+            >
               {initialValues.name ? "Update Field" : "Add Field"}
             </Button>
           </Box>

@@ -107,7 +107,7 @@ url_paths1 = [
     "backend/core/domains/questionnaires/views.py",
 ]
 
-url_paths = [
+url_paths2 = [
     "frontend/admin-crm/src/App.tsx",
     "frontend/admin-crm/src/apis/bookingflow.api.ts",
     "frontend/admin-crm/src/hooks/useBookingFlows.ts",
@@ -142,6 +142,34 @@ url_paths = [
     "backend/core/domains/events/urls.py",
     "backend/core/domains/products/models.py",
     "backend/core/domains/questionnaires/models.py",
+]
+
+backend_files = [
+    "backend/core/domains/questionnaires/models.py",
+    "backend/core/domains/questionnaires/serializers.py",
+    "backend/core/domains/questionnaires/services.py",
+    "backend/core/domains/questionnaires/views.py",
+    "backend/core/domains/questionnaires/urls.py",
+    "backend/core/domains/bookingflow/models.py",
+    "backend/core/domains/bookingflow/serializers.py",
+    "backend/core/domains/bookingflow/services.py",
+    "backend/core/domains/bookingflow/views.py",]
+
+admin_crm_files = [
+    "frontend/admin-crm/src/App.tsx",
+    "frontend/admin-crm/src/apis/questionnaires.api.ts",
+    "frontend/admin-crm/src/hooks/useQuestionnaires.ts",
+    "frontend/admin-crm/src/components/questionnaires/QuestionnaireFieldForm.tsx",
+    "frontend/admin-crm/src/components/questionnaires/QuestionnaireFieldsList.tsx",
+    "frontend/admin-crm/src/components/questionnaires/QuestionnaireForm.tsx",
+    "frontend/admin-crm/src/components/questionnaires/QuestionnaireList.tsx",
+    "frontend/admin-crm/src/components/questionnaires/QuestionnaireResponseForm.tsx",
+    "frontend/admin-crm/src/pages/settings/questionnaires/QuestionnaireDetails.tsx",
+    "frontend/admin-crm/src/pages/settings/questionnaires/Questionnaires.tsx",
+    "frontend/admin-crm/src/types/questionnaires.types.ts",]
+
+url_paths = [
+    *backend_files, *admin_crm_files
 ]
 
 export_files(url_paths)

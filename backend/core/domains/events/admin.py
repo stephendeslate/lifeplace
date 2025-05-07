@@ -1,7 +1,7 @@
 # backend/core/domains/events/admin.py
 from django.contrib import admin
 
-from .models import EventType
+from .models import Event, EventType
 
 
 @admin.register(EventType)
@@ -13,5 +13,16 @@ class EventTypeAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': ('name', 'description', 'is_active')
+        }),
+    )
+    
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    """Admin configuration for Event model"""
+    list_display = ('name', 'status', 'client')
+    search_fields = ('name', 'client')
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'status', 'client')
         }),
     )

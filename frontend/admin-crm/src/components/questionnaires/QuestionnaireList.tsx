@@ -113,7 +113,6 @@ const QuestionnaireList: React.FC<QuestionnaireListProps> = ({
                   <TableCell>Event Type</TableCell>
                   <TableCell>Fields</TableCell>
                   <TableCell>Status</TableCell>
-                  <TableCell>Order</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -162,7 +161,6 @@ const QuestionnaireList: React.FC<QuestionnaireListProps> = ({
                         size="small"
                       />
                     </TableCell>
-                    <TableCell>{questionnaire.order}</TableCell>
                     <TableCell align="right">
                       <IconButton
                         size="small"
