@@ -1,6 +1,8 @@
 // frontend/admin-crm/src/components/workflows/WorkflowStageDialog.tsx
 import {
+  Alert,
   Button,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -38,6 +40,9 @@ interface WorkflowStageDialogProps {
   emailTemplates: EmailTemplate[];
   isLoading: boolean;
   editMode: boolean;
+  // New props for workflow engine
+  onProgressionConditionChange?: (e: SelectChangeEvent<string>) => void;
+  onMetadataChange?: (key: string, value: any) => void;
 }
 
 const WorkflowStageDialog: React.FC<WorkflowStageDialogProps> = ({
@@ -52,6 +57,8 @@ const WorkflowStageDialog: React.FC<WorkflowStageDialogProps> = ({
   emailTemplates,
   isLoading,
   editMode,
+  onProgressionConditionChange,
+  onMetadataChange,
 }) => {
   // Handler for automation type changes
   const handleAutomationTypeChange = (e: SelectChangeEvent) => {
@@ -161,6 +168,10 @@ const WorkflowStageDialog: React.FC<WorkflowStageDialogProps> = ({
                   >
                     <MenuItem value="EMAIL">Email</MenuItem>
                     <MenuItem value="TASK">Task</MenuItem>
+                    <MenuItem value="QUOTE">Quote</MenuItem>
+                    <MenuItem value="CONTRACT">Contract</MenuItem>
+                    <MenuItem value="REMINDER">Reminder</MenuItem>
+                    <MenuItem value="NOTIFICATION">Notification</MenuItem>
                   </Select>
                   <FormHelperText>
                     {stageFormErrors.automation_type}
@@ -178,7 +189,7 @@ const WorkflowStageDialog: React.FC<WorkflowStageDialogProps> = ({
                   error={!!stageFormErrors.trigger_time}
                   helperText={
                     stageFormErrors.trigger_time ||
-                    "e.g., ON_CREATION, AFTER_1_DAY"
+                    "e.g., ON_CREATION, AFTER_1_DAY, AFTER_3_DAYS"
                   }
                   required
                 />
@@ -213,8 +224,90 @@ const WorkflowStageDialog: React.FC<WorkflowStageDialogProps> = ({
                   </FormControl>
                 </Grid>
               )}
+
+              {/* New automation type specific fields */}
+              {stageForm.automation_type === "QUOTE" && (
+                <Grid item xs={12}>
+                  <Alert severity="info">
+                    This stage will automatically generate a quote for the event
+                    when activated.
+                  </Alert>
+                </Grid>
+              )}
+
+              {stageForm.automation_type === "CONTRACT" && (
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel id="contract-template-label">
+                      Contract Template
+                    </InputLabel>
+                    <Select
+                      labelId="contract-template-label"
+                      value={stageForm.metadata?.contract_template_id || ""}
+                      onChange={(e: SelectChangeEvent) => {
+                        onMetadataChange &&
+                          onMetadataChange(
+                            "contract_template_id",
+                            e.target.value
+                          );
+                      }}
+                      label="Contract Template"
+                    >
+                      <MenuItem value="">None</MenuItem>
+                      {/* Contract templates would need to be fetched and mapped here */}
+                      <MenuItem value="1">Sample Contract Template</MenuItem>
+                    </Select>
+                    <FormHelperText>{stageFormErrors.metadata}</FormHelperText>
+                  </FormControl>
+                </Grid>
+              )}
             </>
           )}
+
+          {/* New workflow engine progression fields */}
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel id="progression-condition-label">
+                Progression Condition
+              </InputLabel>
+              <Select
+                labelId="progression-condition-label"
+                name="progression_condition"
+                value={stageForm.progression_condition || ""}
+                onChange={(e) =>
+                  onProgressionConditionChange &&
+                  onProgressionConditionChange(e)
+                }
+                label="Progression Condition"
+              >
+                <MenuItem value="">None (Manual Progression)</MenuItem>
+                <MenuItem value="QUOTE_ACCEPTED">Quote Accepted</MenuItem>
+                <MenuItem value="PAYMENT_RECEIVED">Payment Received</MenuItem>
+                <MenuItem value="CONTRACT_SIGNED">Contract Signed</MenuItem>
+                <MenuItem value="ALL_TASKS_COMPLETED">
+                  All Tasks Completed
+                </MenuItem>
+                <MenuItem value="SPECIFIC_DATE">Specific Date</MenuItem>
+              </Select>
+              <FormHelperText>
+                Condition required to automatically progress to the next stage
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  name="required_tasks_completed"
+                  checked={stageForm.required_tasks_completed || false}
+                  onChange={onChange}
+                  color="primary"
+                />
+              }
+              label="Require all tasks to be completed before progressing"
+            />
+          </Grid>
 
           <Grid item xs={12}>
             <TextField

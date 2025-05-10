@@ -11,6 +11,7 @@ import {
   Note as NoteIcon,
   Assignment as QuestionnaireIcon,
   RequestQuote as QuoteIcon,
+  ViewTimeline as WorkflowIcon,
 } from "@mui/icons-material";
 import {
   Alert,
@@ -33,7 +34,9 @@ import Layout from "../../components/common/Layout";
 import { EventProgress, EventStatusChip } from "../../components/events";
 import EventContracts from "../../components/events/EventContracts";
 import { NotesTab } from "../../components/notes";
+import WorkflowProgress from "../../components/workflows/WorkflowProgress";
 import { useEvent } from "../../hooks/useEvents";
+import { useWorkflowProgress } from "../../hooks/useWorkflowProgress";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -61,6 +64,14 @@ export const EventDetails: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
 
   const { event, isLoading, error } = useEvent(eventId);
+
+  // Add workflow progress hook
+  const {
+    stages,
+    currentStage,
+    progress,
+    isLoading: isLoadingWorkflow,
+  } = useWorkflowProgress(event ?? null);
 
   // Handle tab change
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -173,7 +184,20 @@ export const EventDetails: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Progress bar */}
+          {/* Workflow Progress Section - NEW ADDITION */}
+          {event.workflow_template && (
+            <WorkflowProgress
+              stages={stages}
+              currentStageId={
+                typeof event.current_stage === "number"
+                  ? event.current_stage
+                  : null
+              }
+              progress={progress}
+            />
+          )}
+
+          {/* Original Progress bar - Keep for backward compatibility */}
           <Box sx={{ mb: 3 }}>
             <Typography variant="body2" gutterBottom>
               Workflow Progress:
@@ -204,6 +228,12 @@ export const EventDetails: React.FC = () => {
             <Tab label="Contracts" />
             <Tab label="Quotes" />
             <Tab label="Messages" />
+            {/* Add a new tab for workflow management */}
+            <Tab
+              label="Workflow"
+              icon={<WorkflowIcon />}
+              iconPosition="start"
+            />
           </Tabs>
 
           {/* Tab content */}
@@ -413,6 +443,76 @@ export const EventDetails: React.FC = () => {
               This is a placeholder for the messages tab. This section will show
               all communication with the client related to this event.
             </Typography>
+          </TabPanel>
+
+          {/* New Workflow tab */}
+          <TabPanel value={activeTab} index={8}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Event Workflow Management
+              </Typography>
+
+              {isLoadingWorkflow ? (
+                <CircularProgress size={24} sx={{ mt: 2 }} />
+              ) : (
+                <>
+                  {event.workflow_template ? (
+                    <Box>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight="medium"
+                        gutterBottom
+                      >
+                        Current Workflow:{" "}
+                        {event.workflow_template
+                          ? currentStage?.name
+                          : "None assigned"}
+                      </Typography>
+
+                      <WorkflowProgress
+                        stages={stages}
+                        currentStageId={
+                          typeof event.current_stage === "number"
+                            ? event.current_stage
+                            : null
+                        }
+                        progress={progress}
+                      />
+
+                      <Box sx={{ mt: 3 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Workflow Tasks:
+                        </Typography>
+                        {/* This would eventually be replaced with a list of tasks for the current stage */}
+                        <Alert severity="info" sx={{ mt: 1 }}>
+                          Tasks for the current stage will appear here. These
+                          tasks are generated automatically based on the
+                          workflow configuration.
+                        </Alert>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <Alert severity="info">
+                      No workflow has been assigned to this event yet. Assign a
+                      workflow template to enable automated progression and task
+                      creation.
+                    </Alert>
+                  )}
+
+                  <Box
+                    sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}
+                  >
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      disabled={!event.workflow_template}
+                    >
+                      Manage Workflow
+                    </Button>
+                  </Box>
+                </>
+              )}
+            </Box>
           </TabPanel>
         </Box>
       </Container>

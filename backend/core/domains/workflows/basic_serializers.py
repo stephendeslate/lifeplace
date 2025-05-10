@@ -29,7 +29,8 @@ class WorkflowStageSerializer(serializers.ModelSerializer):
         model = WorkflowStage
         fields = [
             'id', 'template', 'name', 'stage', 'stage_display', 'order',
-            'is_automated', 'automation_type', 'trigger_time',
-            'email_template', 'task_description', 'created_at', 'updated_at'
+            'is_automated', 'automation_type', 'trigger_time', 'email_template',
+            'task_description', 'progression_condition', 'required_tasks_completed',
+            'metadata', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']

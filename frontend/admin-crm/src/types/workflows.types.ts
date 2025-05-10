@@ -25,6 +25,10 @@ export interface WorkflowStage {
   trigger_time: string;
   email_template: number | EmailTemplate | null;
   task_description: string;
+  // New workflow engine fields
+  progression_condition: string;
+  required_tasks_completed: boolean;
+  metadata: { [key: string]: any };
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +57,10 @@ export interface WorkflowStageFormData {
   email_template?: number | null;
   task_description?: string;
   template: number;
+  // New workflow engine fields
+  progression_condition?: string;
+  required_tasks_completed?: boolean;
+  metadata?: { [key: string]: any };
 }
 
 export interface WorkflowTemplateFormData {
@@ -78,6 +86,9 @@ export interface WorkflowStageFormErrors {
   trigger_time?: string;
   email_template?: string;
   task_description?: string;
+  // New workflow engine fields
+  progression_condition?: string;
+  metadata?: string;
 }
 
 export interface ReorderStagesRequest {

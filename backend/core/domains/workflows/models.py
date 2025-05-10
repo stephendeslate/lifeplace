@@ -22,15 +22,43 @@ class WorkflowStage(BaseModel):
         ('PRODUCTION', 'Production'),
         ('POST_PRODUCTION', 'Post Production'),
     ]
+    
+    AUTOMATION_TYPE_CHOICES = [
+        ('EMAIL', 'Send Email'),
+        ('TASK', 'Create Task'),
+        ('QUOTE', 'Generate Quote'),
+        ('CONTRACT', 'Generate Contract'),
+        ('REMINDER', 'Send Reminder'),
+        ('NOTIFICATION', 'Send Notification'),
+    ]
+    
     template = models.ForeignKey(WorkflowTemplate, related_name='stages', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     stage = models.CharField(max_length=20, choices=STAGE_CHOICES)
     order = models.PositiveIntegerField()
     is_automated = models.BooleanField(default=False)
-    automation_type = models.CharField(max_length=50, blank=True)
-    trigger_time = models.CharField(max_length=255, blank=True)
+    automation_type = models.CharField(max_length=50, choices=AUTOMATION_TYPE_CHOICES, blank=True)
+    trigger_time = models.CharField(
+        max_length=255, 
+        blank=True,
+        help_text="When to trigger automation (ON_CREATION, AFTER_1_DAY, AFTER_3_DAYS, etc.)"
+    )
     email_template = models.ForeignKey('communications.EmailTemplate', on_delete=models.SET_NULL, null=True, blank=True)
     task_description = models.TextField(blank=True)
+    
+    # New fields for enhanced workflow stages
+    progression_condition = models.CharField(
+        max_length=255, 
+        blank=True,
+        help_text="Condition required to progress (QUOTE_ACCEPTED, PAYMENT_RECEIVED, etc.)"
+    )
+    required_tasks_completed = models.BooleanField(
+        default=False,
+        help_text="Require all associated tasks to be completed before progressing"
+    )
+    
+    # Add a field for custom metadata (for different automation types)
+    metadata = models.JSONField(default=dict, blank=True)
 
     class Meta:
         ordering = ['order']

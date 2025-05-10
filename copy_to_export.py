@@ -145,28 +145,35 @@ url_paths2 = [
 ]
 
 backend_files = [
-    "backend/core/domains/questionnaires/models.py",
-    "backend/core/domains/questionnaires/serializers.py",
-    "backend/core/domains/questionnaires/services.py",
-    "backend/core/domains/questionnaires/views.py",
-    "backend/core/domains/questionnaires/urls.py",
-    "backend/core/domains/bookingflow/models.py",
-    "backend/core/domains/bookingflow/serializers.py",
-    "backend/core/domains/bookingflow/services.py",
-    "backend/core/domains/bookingflow/views.py",]
+    "backend/core/domains/events/models.py",
+    "backend/core/domains/events/serializers.py",
+    "backend/core/domains/events/services.py",
+    "backend/core/domains/events/views.py",
+    "backend/core/domains/events/urls.py",
+    "backend/core/domains/workflows/models.py",
+    "backend/core/domains/workflows/serializers.py",
+    "backend/core/domains/workflows/services.py",
+    "backend/core/domains/workflows/views.py",
+    "backend/core/domains/workflows/urls.py",
+    "backend/core/domains/sales/models.py",
+    "backend/core/domains/sales/serializers.py",
+    "backend/core/domains/sales/services.py",
+    "backend/core/domains/sales/views.py",
+    "backend/core/domains/sales/urls.py",
+]
+    
 
 admin_crm_files = [
     "frontend/admin-crm/src/App.tsx",
-    "frontend/admin-crm/src/apis/questionnaires.api.ts",
-    "frontend/admin-crm/src/hooks/useQuestionnaires.ts",
-    "frontend/admin-crm/src/components/questionnaires/QuestionnaireFieldForm.tsx",
-    "frontend/admin-crm/src/components/questionnaires/QuestionnaireFieldsList.tsx",
-    "frontend/admin-crm/src/components/questionnaires/QuestionnaireForm.tsx",
-    "frontend/admin-crm/src/components/questionnaires/QuestionnaireList.tsx",
-    "frontend/admin-crm/src/components/questionnaires/QuestionnaireResponseForm.tsx",
-    "frontend/admin-crm/src/pages/settings/questionnaires/QuestionnaireDetails.tsx",
-    "frontend/admin-crm/src/pages/settings/questionnaires/Questionnaires.tsx",
-    "frontend/admin-crm/src/types/questionnaires.types.ts",]
+    "frontend/admin-crm/src/apis/workflows.api.ts",
+    "frontend/admin-crm/src/hooks/useWorkflows.ts",
+    "frontend/admin-crm/src/components/workflows/WorkflowStageDialog.tsx",
+    "frontend/admin-crm/src/components/workflows/WorkflowStageItem.tsx.tsx",
+    "frontend/admin-crm/src/components/workflows/WorkflowStageTabs.tsx",
+    "frontend/admin-crm/src/components/workflows/WorkflowTemplateDialog.tsx",
+    "frontend/admin-crm/src/components/workflows/WorkflowTemplateItem.tsx",
+    "frontend/admin-crm/src/pages/settings/workflows/Workflows.tsx",
+    "frontend/admin-crm/src/types/workflows.types.ts",]
 
 url_paths = [
     *backend_files, *admin_crm_files

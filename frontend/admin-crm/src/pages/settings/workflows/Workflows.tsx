@@ -26,11 +26,11 @@ import {
   ListItem,
   MenuItem,
   Select,
+  SelectChangeEvent,
   Switch,
   TextField,
   Typography,
 } from "@mui/material";
-import { SelectChangeEvent } from "@mui/material/Select";
 import { formatDistanceToNow } from "date-fns";
 import React, { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -89,6 +89,7 @@ const Workflows: React.FC = () => {
   const [templateFormErrors, setTemplateFormErrors] =
     useState<WorkflowTemplateFormErrors>({});
 
+  // Updated initialStageForm with new workflow engine fields
   const initialStageForm: WorkflowStageFormData = {
     name: "",
     stage: "LEAD",
@@ -96,7 +97,15 @@ const Workflows: React.FC = () => {
     is_automated: false,
     task_description: "",
     template: 0,
+    automation_type: "",
+    trigger_time: "",
+    email_template: null,
+    // New fields for workflow engine
+    progression_condition: "",
+    required_tasks_completed: false,
+    metadata: {},
   };
+
   const [stageForm, setStageForm] =
     useState<WorkflowStageFormData>(initialStageForm);
   const [stageFormErrors, setStageFormErrors] =
@@ -238,6 +247,31 @@ const Workflows: React.FC = () => {
     });
   };
 
+  // Handle progression condition change
+  const handleProgressionConditionChange = (e: SelectChangeEvent<string>) => {
+    const syntheticEvent = {
+      target: {
+        name: "progression_condition",
+        value: e.target.value,
+        type: "select",
+        checked: false,
+      },
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+    handleStageFormChange(syntheticEvent);
+  };
+
+  // Handle metadata updates
+  const handleMetadataChange = (key: string, value: any) => {
+    setStageForm({
+      ...stageForm,
+      metadata: {
+        ...stageForm.metadata,
+        [key]: value,
+      },
+    });
+  };
+
   // Validate stage form
   const validateStageForm = (): boolean => {
     const errors: WorkflowStageFormErrors = {};
@@ -267,6 +301,16 @@ const Workflows: React.FC = () => {
       if (stageForm.automation_type === "EMAIL" && !stageForm.email_template) {
         errors.email_template =
           "Email template is required for email automation";
+        isValid = false;
+      }
+
+      // Validate metadata based on automation type
+      if (
+        stageForm.automation_type === "CONTRACT" &&
+        (!stageForm.metadata || !stageForm.metadata.contract_template_id)
+      ) {
+        errors.metadata =
+          "Contract template is required for contract automation";
         isValid = false;
       }
     }
@@ -385,7 +429,11 @@ const Workflows: React.FC = () => {
           : stage.email_template.id
         : null,
       task_description: stage.task_description,
-      template: stage.template, // Make sure to include the template ID
+      template: stage.template,
+      // New fields
+      progression_condition: stage.progression_condition || "",
+      required_tasks_completed: stage.required_tasks_completed || false,
+      metadata: stage.metadata || {},
     });
     setSelectedStageId(stage.id);
     setEditMode(true);
@@ -713,7 +761,7 @@ const Workflows: React.FC = () => {
         editMode={editMode}
       />
 
-      {/* Stage Dialog */}
+      {/* Stage Dialog - The dialog component itself is in a separate file */}
       <WorkflowStageDialog
         open={stageDialogOpen}
         onClose={() => setStageDialogOpen(false)}
@@ -723,6 +771,8 @@ const Workflows: React.FC = () => {
         onChange={handleStageFormChange}
         onStageTypeChange={handleStageTypeChange}
         onEmailTemplateChange={handleEmailTemplateChange}
+        onProgressionConditionChange={handleProgressionConditionChange}
+        onMetadataChange={handleMetadataChange}
         emailTemplates={emailTemplates}
         isLoading={isCreatingStage || isUpdatingStage}
         editMode={editMode}
