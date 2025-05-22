@@ -16,6 +16,52 @@ interface BookingFlowResponse {
   previous: string | null;
 }
 
+// Configuration update interfaces
+interface QuestionnaireConfigUpdate {
+  title?: string;
+  description?: string;
+  questionnaire_items?: Array<{
+    questionnaire: number;
+    order?: number;
+    is_required?: boolean;
+  }>;
+  is_required?: boolean;
+  is_visible?: boolean;
+}
+
+interface PackageConfigUpdate {
+  title?: string;
+  description?: string;
+  min_selection?: number;
+  max_selection?: number;
+  selection_type?: "SINGLE" | "MULTIPLE";
+  package_items?: Array<{
+    product: number;
+    order?: number;
+    is_highlighted?: boolean;
+    custom_price?: number;
+    custom_description?: string;
+  }>;
+  is_required?: boolean;
+  is_visible?: boolean;
+}
+
+interface AddonConfigUpdate {
+  title?: string;
+  description?: string;
+  min_selection?: number;
+  max_selection?: number;
+  addon_items?: Array<{
+    product: number;
+    order?: number;
+    is_highlighted?: boolean;
+    custom_price?: number;
+    custom_description?: string;
+  }>;
+  is_required?: boolean;
+  is_visible?: boolean;
+}
+
 export const bookingClientApi = {
   /**
    * Get active event types
@@ -75,6 +121,116 @@ export const bookingClientApi = {
   },
 
   /**
+   * Get active booking flows only
+   */
+  getActiveBookingFlows: async (
+    eventTypeId?: number
+  ): Promise<BookingFlowResponse> => {
+    const params: Record<string, any> = {};
+
+    if (eventTypeId) {
+      params.event_type = eventTypeId;
+    }
+
+    const response = await api.get<BookingFlowResponse>(
+      "/bookingflow/flows/active/",
+      { params }
+    );
+    return response.data;
+  },
+
+  /**
+   * Configuration Management Methods
+   */
+
+  /**
+   * Get questionnaire configuration for a booking flow
+   */
+  getQuestionnaireConfig: async (flowId: number): Promise<any> => {
+    const response = await api.get(
+      `/bookingflow/flows/${flowId}/questionnaire-config/`
+    );
+    return response.data;
+  },
+
+  /**
+   * Update questionnaire configuration for a booking flow
+   */
+  updateQuestionnaireConfig: async (
+    flowId: number,
+    configData: QuestionnaireConfigUpdate
+  ): Promise<any> => {
+    const response = await api.patch(
+      `/bookingflow/flows/${flowId}/questionnaire-config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Get package configuration for a booking flow
+   */
+  getPackageConfig: async (flowId: number): Promise<any> => {
+    const response = await api.get(
+      `/bookingflow/flows/${flowId}/package-config/`
+    );
+    return response.data;
+  },
+
+  /**
+   * Update package configuration for a booking flow
+   */
+  updatePackageConfig: async (
+    flowId: number,
+    configData: PackageConfigUpdate
+  ): Promise<any> => {
+    const response = await api.patch(
+      `/bookingflow/flows/${flowId}/package-config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Get addon configuration for a booking flow
+   */
+  getAddonConfig: async (flowId: number): Promise<any> => {
+    const response = await api.get(
+      `/bookingflow/flows/${flowId}/addon-config/`
+    );
+    return response.data;
+  },
+
+  /**
+   * Update addon configuration for a booking flow
+   */
+  updateAddonConfig: async (
+    flowId: number,
+    configData: AddonConfigUpdate
+  ): Promise<any> => {
+    const response = await api.patch(
+      `/bookingflow/flows/${flowId}/addon-config/`,
+      configData
+    );
+    return response.data;
+  },
+
+  /**
+   * Get all questionnaires for an event type
+   */
+  getQuestionnairesForEventType: async (
+    eventTypeId: number
+  ): Promise<Questionnaire[]> => {
+    const response = await api.get<Questionnaire[]>(
+      `/questionnaires/questionnaires/`,
+      {
+        params: { event_type: eventTypeId, is_active: true },
+      }
+    );
+    return response.data;
+  },
+
+  /**
    * Get questionnaire details by ID with fields
    */
   getQuestionnaireById: async (id: number): Promise<Questionnaire> => {
@@ -95,6 +251,10 @@ export const bookingClientApi = {
   },
 
   /**
+   * Event Management Methods
+   */
+
+  /**
    * Create a new event (booking)
    */
   createEvent: async (
@@ -106,6 +266,10 @@ export const bookingClientApi = {
     );
     return response.data;
   },
+
+  /**
+   * Create event product association
+   */
   createEventProduct: async (productData: {
     event: number;
     product_option: number;
@@ -115,6 +279,10 @@ export const bookingClientApi = {
     const response = await api.post("/events/event-products/", productData);
     return response.data;
   },
+
+  /**
+   * Payment Methods
+   */
 
   /**
    * Process payment for an event
@@ -138,6 +306,47 @@ export const bookingClientApi = {
       { status: "CONFIRMED" }
     );
     return response.data;
+  },
+
+  /**
+   * Utility Methods
+   */
+
+  /**
+   * Setup booking flow with questionnaires for event type
+   * This method helps ensure questionnaire items are properly configured
+   */
+  setupBookingFlowQuestionnaires: async (
+    flowId: number,
+    eventTypeId: number
+  ): Promise<any> => {
+    try {
+      // First, get all questionnaires for this event type
+      const questionnaires =
+        await bookingClientApi.getQuestionnairesForEventType(eventTypeId);
+
+      if (questionnaires.length === 0) {
+        console.warn(`No questionnaires found for event type ${eventTypeId}`);
+        return null;
+      }
+
+      // Prepare questionnaire items
+      const questionnaireItems = questionnaires.map((q, index) => ({
+        questionnaire: q.id,
+        order: index + 1,
+        is_required: true,
+      }));
+
+      // Update the questionnaire configuration
+      const result = await bookingClientApi.updateQuestionnaireConfig(flowId, {
+        questionnaire_items: questionnaireItems,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error setting up booking flow questionnaires:", error);
+      throw error;
+    }
   },
 };
 

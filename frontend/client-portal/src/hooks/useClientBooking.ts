@@ -84,6 +84,34 @@ export const useClientBooking = () => {
           return null;
         }
 
+        // Check if questionnaire configuration exists but has no items
+        // and try to set them up automatically
+        if (
+          bookingFlow.questionnaire_config &&
+          bookingFlow.questionnaire_config.is_visible &&
+          (!bookingFlow.questionnaire_config.questionnaire_items ||
+            bookingFlow.questionnaire_config.questionnaire_items.length === 0)
+        ) {
+          try {
+            console.log("Setting up questionnaires for booking flow...");
+            await bookingClientApi.setupBookingFlowQuestionnaires(
+              flowId,
+              eventTypeId
+            );
+
+            // Reload the booking flow to get the updated questionnaire items
+            const updatedBookingFlow =
+              await bookingClientApi.getBookingFlowById(flowId);
+            if (updatedBookingFlow) {
+              dispatch({ type: "SET_LOADING", payload: false });
+              return updatedBookingFlow;
+            }
+          } catch (setupError) {
+            console.warn("Could not auto-setup questionnaires:", setupError);
+            // Continue with the original flow even if setup fails
+          }
+        }
+
         dispatch({ type: "SET_LOADING", payload: false });
         return bookingFlow;
       } catch (error) {
@@ -120,6 +148,53 @@ export const useClientBooking = () => {
       return false;
     },
     [dispatch, loadBookingFlow, goToStep]
+  );
+
+  // Setup questionnaires for a booking flow
+  const setupQuestionnaireItems = useCallback(
+    async (flowId: number, eventTypeId: number) => {
+      try {
+        dispatch({ type: "SET_LOADING", payload: true });
+
+        const result = await bookingClientApi.setupBookingFlowQuestionnaires(
+          flowId,
+          eventTypeId
+        );
+
+        if (result) {
+          showToast("Questionnaires configured successfully", "success");
+          // Reload the booking flow to refresh the data
+          const updatedFlow = await bookingClientApi.getBookingFlowById(flowId);
+          dispatch({ type: "SET_LOADING", payload: false });
+          return updatedFlow;
+        }
+
+        dispatch({ type: "SET_LOADING", payload: false });
+        return null;
+      } catch (error) {
+        console.error("Error setting up questionnaires:", error);
+        dispatch({ type: "SET_LOADING", payload: false });
+        showToast("Failed to setup questionnaires", "error");
+        return null;
+      }
+    },
+    [dispatch, showToast]
+  );
+
+  // Get questionnaires for current event type
+  const loadQuestionnaires = useCallback(
+    async (eventTypeId: number) => {
+      try {
+        const questionnaires =
+          await bookingClientApi.getQuestionnairesForEventType(eventTypeId);
+        return questionnaires;
+      } catch (error) {
+        console.error("Error loading questionnaires:", error);
+        showToast("Failed to load questionnaires", "error");
+        return [];
+      }
+    },
+    [showToast]
   );
 
   // Create event object from booking form data
@@ -324,6 +399,8 @@ export const useClientBooking = () => {
     loadEventTypes,
     loadBookingFlow,
     selectEventType,
+    setupQuestionnaireItems,
+    loadQuestionnaires,
     createEvent,
     processPayment,
     calculateTotalPrice,

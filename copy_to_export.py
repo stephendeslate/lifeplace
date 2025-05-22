@@ -145,21 +145,18 @@ url_paths2 = [
 ]
 
 backend_files = [
-    "backend/core/domains/events/models.py",
-    "backend/core/domains/events/serializers.py",
-    "backend/core/domains/events/services.py",
-    "backend/core/domains/events/views.py",
-    "backend/core/domains/events/urls.py",
-    "backend/core/domains/workflows/models.py",
-    "backend/core/domains/workflows/serializers.py",
-    "backend/core/domains/workflows/services.py",
-    "backend/core/domains/workflows/views.py",
-    "backend/core/domains/workflows/urls.py",
-    "backend/core/domains/sales/models.py",
-    "backend/core/domains/sales/serializers.py",
-    "backend/core/domains/sales/services.py",
-    "backend/core/domains/sales/views.py",
-    "backend/core/domains/sales/urls.py",
+    "backend/core/domains/bookingflow/models.py",
+    "backend/core/domains/bookingflow/basic_serializers.py",
+    "backend/core/domains/bookingflow/serializers.py",
+    "backend/core/domains/bookingflow/views.py",
+    "backend/core/domains/bookingflow/urls.py",
+    "backend/core/domains/bookingflow/services.py",
+    "backend/core/domains/products/models.py",
+    "backend/core/domains/products/serializers.py",
+    "backend/core/domains/questionnaires/models.py",
+    "backend/core/domains/questionnaires/basic_serializers.py",
+    "backend/core/domains/questionnaires/serializers.py",
+    
 ]
     
 
@@ -176,7 +173,7 @@ admin_crm_files = [
     "frontend/admin-crm/src/types/workflows.types.ts",]
 
 url_paths = [
-    *backend_files, *admin_crm_files
+    *backend_files
 ]
 
 export_files(url_paths)
