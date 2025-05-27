@@ -1,9 +1,10 @@
 # backend/core/domains/sales/services.py
+import logging
 from datetime import timedelta
 from decimal import Decimal
 
 from core.domains.events.models import Event
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 
 from .exceptions import (
@@ -24,6 +25,8 @@ from .models import (
     QuoteTemplate,
     QuoteTemplateProduct,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class QuoteTemplateService:
@@ -161,14 +164,25 @@ class QuoteService:
         
         with transaction.atomic():
             # Set default valid until date if not provided
-            if 'valid_until' not in data:
+            if 'valid_until' not in data or not data['valid_until']:
                 data['valid_until'] = timezone.now().date() + timedelta(days=30)
+            
+            # Get next version number for this event
+            max_version = EventQuote.objects.filter(event=event).aggregate(
+                max_version=models.Max('version')
+            )['max_version'] or 0
             
             # Create quote
             quote = EventQuote.objects.create(
-                **data,
-                version=1,
+                event=event,
+                template=data.get('template'),
+                version=max_version + 1,
                 status='DRAFT',
+                total_amount=data.get('total_amount', 0),
+                valid_until=data['valid_until'],
+                notes=data.get('notes', ''),
+                terms_and_conditions=data.get('terms_and_conditions', ''),
+                client_message=data.get('client_message', ''),
                 created_by=user
             )
             
@@ -182,26 +196,28 @@ class QuoteService:
             
             # If a template was used, copy its products as line items
             if quote.template:
-                for template_product in quote.template.quotetemplateplateproduct_set.all():
+                template_products = QuoteTemplateProduct.objects.filter(template=quote.template)
+                for template_product in template_products:
                     QuoteLineItem.objects.create(
                         quote=quote,
                         description=template_product.product.name,
                         quantity=template_product.quantity,
                         unit_price=template_product.product.base_price,
-                        tax_rate=template_product.product.tax_rate,
+                        tax_rate=getattr(template_product.product, 'tax_rate', Decimal('0')),
                         total=template_product.product.base_price * template_product.quantity,
                         product=template_product.product,
                         notes=""
                     )
                 
-                # Copy terms and conditions from template
+                # Copy terms and conditions from template if not provided
                 if quote.template.terms_and_conditions and not quote.terms_and_conditions:
                     quote.terms_and_conditions = quote.template.terms_and_conditions
-                    quote.save()
+                    quote.save(update_fields=['terms_and_conditions'])
             
             # Calculate totals
             quote.calculate_totals()
             
+            logger.info(f"Created new quote for event {event.id}")
             return quote
     
     @staticmethod
@@ -284,6 +300,7 @@ class QuoteService:
             # Recalculate totals if needed
             quote.calculate_totals()
             
+            logger.info(f"Updated quote: {quote}")
             return quote
     
     @staticmethod
@@ -328,7 +345,7 @@ class QuoteService:
             # Create line item
             if 'total' not in line_item_data:
                 line_item_data['total'] = (
-                    Decimal(line_item_data['unit_price']) * int(line_item_data['quantity'])
+                    Decimal(str(line_item_data['unit_price'])) * int(line_item_data['quantity'])
                 )
             
             line_item = QuoteLineItem.objects.create(

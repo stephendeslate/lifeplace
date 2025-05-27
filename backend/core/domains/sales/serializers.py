@@ -108,7 +108,7 @@ class QuoteReminderSerializer(serializers.ModelSerializer):
 
 
 class EventQuoteSerializer(serializers.ModelSerializer):
-    event_details = EventSerializer(source='event', read_only=True)
+    event_details = serializers.SerializerMethodField()
     template_details = QuoteTemplateSerializer(source='template', read_only=True)
     line_items = QuoteLineItemSerializer(many=True, read_only=True)
     options = QuoteOptionSerializer(many=True, read_only=True)
@@ -126,3 +126,14 @@ class EventQuoteSerializer(serializers.ModelSerializer):
             'line_items', 'options', 'activities', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'version', 'created_at', 'updated_at']
+    
+    def get_event_details(self, obj):
+        """Get basic event details to avoid circular imports"""
+        return {
+            'id': obj.event.id,
+            'name': obj.event.name,
+            'client_name': getattr(obj.event, 'client_name', 
+                f"{obj.event.client.first_name} {obj.event.client.last_name}" if obj.event.client else "Unknown"),
+            'start_date': obj.event.start_date,
+            'status': obj.event.status,
+        }

@@ -20,16 +20,15 @@ import Login from "./pages/auth/Login";
 import { ClientDetails, ClientsList } from "./pages/clients";
 import { ContractDetails } from "./pages/contracts";
 import Dashboard from "./pages/dashboard/Dashboard";
-import { EventDetails, EventsCalendar, EventsList } from "./pages/events";
+import {
+  EventDetails,
+  EventQuoteDetails,
+  EventQuotesList,
+  EventsCalendar,
+  EventsList,
+} from "./pages/events";
 import { PaymentDetails, PaymentsList } from "./pages/payments";
 import Profile from "./pages/profile/Profile";
-import {
-  QuoteDetails,
-  QuotesList,
-  QuoteTemplateDetails,
-  QuoteTemplates,
-} from "./pages/sales";
-import Settings from "./pages/settings/Settings";
 import MyProfile from "./pages/settings/accounts/MyProfile";
 import Users from "./pages/settings/accounts/Users";
 import { BookingFlows, EventTypes } from "./pages/settings/bookingflow";
@@ -49,6 +48,8 @@ import {
   QuestionnaireDetails,
   Questionnaires,
 } from "./pages/settings/questionnaires";
+import { QuoteTemplateDetails, QuoteTemplates } from "./pages/settings/sales";
+import Settings from "./pages/settings/Settings";
 import EmailTemplates from "./pages/settings/templates/EmailTemplates";
 import Workflows from "./pages/settings/workflows/Workflows";
 import theme from "./theme";
@@ -89,6 +90,8 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Event routes */}
       <Route
         path="/events"
         element={
@@ -121,6 +124,42 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Event-nested quote routes */}
+      <Route
+        path="/events/:id/quotes"
+        element={
+          <ProtectedRoute>
+            <EventQuotesList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/quotes/:quoteId"
+        element={
+          <ProtectedRoute>
+            <EventQuoteDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/quotes/:quoteId/edit"
+        element={
+          <ProtectedRoute>
+            <EventQuoteDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:id/quotes/new"
+        element={
+          <ProtectedRoute>
+            <EventQuoteDetails />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Client routes */}
       <Route
         path="/clients"
         element={
@@ -145,6 +184,8 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Payment routes */}
       <Route
         path="/payments"
         element={
@@ -161,6 +202,7 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
       {/* Contract routes */}
       <Route
         path="/contracts/:id"
@@ -170,6 +212,8 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Profile route */}
       <Route
         path="/profile"
         element={
@@ -244,6 +288,7 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
       {/* Settings routes for contracts */}
       <Route
         path="/settings/contracts/templates"
@@ -269,6 +314,8 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Settings routes for sales/quote templates (not event-specific) */}
       <Route
         path="/settings/sales/quote-templates"
         element={
@@ -294,38 +341,7 @@ const AppWithAuth: React.FC = () => {
         }
       />
 
-      <Route
-        path="/sales/quotes"
-        element={
-          <ProtectedRoute>
-            <QuotesList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sales/events/:eventId/quotes"
-        element={
-          <ProtectedRoute>
-            <QuotesList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sales/quotes/:id"
-        element={
-          <ProtectedRoute>
-            <QuoteDetails />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sales/quotes/:id/edit"
-        element={
-          <ProtectedRoute>
-            <QuoteDetails />
-          </ProtectedRoute>
-        }
-      />
+      {/* Payment settings routes */}
       <Route
         path="/settings/payments/payment-methods"
         element={
@@ -359,7 +375,7 @@ const AppWithAuth: React.FC = () => {
         }
       />
 
-      {/* Add notification settings routes */}
+      {/* Notification settings routes */}
       <Route
         path="/settings/notifications/notification-settings"
         element={
@@ -384,6 +400,8 @@ const AppWithAuth: React.FC = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Booking flow settings routes */}
       <Route
         path="/settings/bookingflow/flows"
         element={

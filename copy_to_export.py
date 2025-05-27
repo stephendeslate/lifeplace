@@ -145,38 +145,31 @@ url_paths2 = [
 ]
 
 backend_files = [
-    "backend/core/domains/bookingflow/models.py",
-    "backend/core/domains/bookingflow/basic_serializers.py",
-    "backend/core/domains/bookingflow/serializers.py",
-    "backend/core/domains/bookingflow/views.py",
-    "backend/core/domains/bookingflow/urls.py",
-    "backend/core/domains/bookingflow/services.py",
-    "backend/core/domains/workflows/models.py",
-    "backend/core/domains/workflows/basic_serializers.py",
-    "backend/core/domains/workflows/serializers.py",
-    "backend/core/domains/workflows/views.py",
-    "backend/core/domains/workflows/urls.py",
-    "backend/core/domains/workflows/services.py",
     "backend/core/domains/events/models.py",
     "backend/core/domains/events/basic_serializers.py",
     "backend/core/domains/events/serializers.py",
     "backend/core/domains/events/views.py",
     "backend/core/domains/events/urls.py",
     "backend/core/domains/events/services.py",
-    
-    
+    "backend/core/domains/sales/models.py",
+    "backend/core/domains/sales/serializers.py",
+    "backend/core/domains/sales/views.py",
+    "backend/core/domains/sales/urls.py",
+    "backend/core/domains/sales/services.py",
+    "backend/core/domains/workflows/models.py",
+    "backend/core/domains/workflows/engine.py",
+    "backend/core/domains/workflows/signals.py",
 ]
     
 
 admin_crm_files = [
     "frontend/admin-crm/src/App.tsx",
-    "frontend/admin-crm/src/apis/workflows.api.ts",
-    "frontend/admin-crm/src/hooks/useWorkflows.ts",
+    "frontend/admin-crm/src/pages/events/EventDetails.tsx",
+    "frontend/admin-crm/src/hooks/useSales.ts",
+    "frontend/admin-crm/src/hooks/useEvents.ts",
     "frontend/admin-crm/src/components/workflows/WorkflowTemplateDialog.tsx",
-    "frontend/admin-crm/src/pages/settings/workflows/Workflows.tsx",
-    "frontend/admin-crm/src/types/workflows.types.ts",
-    "frontend/admin-crm/src/components/bookingflow/BookingFlowDialog.tsx",
-    "frontend/admin-crm/src/types/bookingflow.types.ts",
+    "frontend/admin-crm/src/types/events.types.ts",
+    "frontend/admin-crm/src/types/sales.types.ts",
 ]
 
 client_portal_files = [
@@ -187,7 +180,7 @@ client_portal_files = [
 ]
 
 url_paths = [
-    *backend_files, *admin_crm_files, *client_portal_files
+    *backend_files, *admin_crm_files
 ]
 
 export_files(url_paths)

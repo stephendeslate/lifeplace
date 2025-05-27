@@ -262,7 +262,7 @@ class EventQuoteViewSet(viewsets.ModelViewSet):
         try:
             quote = QuoteService.duplicate_quote(pk, request.user)
             serializer = self.get_serializer(quote)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
