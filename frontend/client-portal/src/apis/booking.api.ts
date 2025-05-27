@@ -255,14 +255,21 @@ export const bookingClientApi = {
    */
 
   /**
-   * Create a new event (booking)
+   * Create a new event (booking) with optional booking flow context
    */
   createEvent: async (
-    eventData: EventCreateData
+    eventData: EventCreateData,
+    bookingFlowId?: number
   ): Promise<{ id: number; status: string }> => {
+    // Add booking flow ID to the request if provided
+    const requestData = {
+      ...eventData,
+      ...(bookingFlowId && { booking_flow_id: bookingFlowId }),
+    };
+
     const response = await api.post<{ id: number; status: string }>(
       "/events/events/",
-      eventData
+      requestData
     );
     return response.data;
   },

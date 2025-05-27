@@ -31,7 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import React, { useState } from "react";
 import { EventTypeDialog } from "../../../components/bookingflow";
 import SettingsLayout from "../../../components/settings/SettingsLayout";
-import { useEventTypes } from "../../../hooks/useBookingFlows";
+import { useEventTypes } from "../../../hooks/useEventTypes";
 import { EventType } from "../../../types/events.types";
 
 const EventTypes: React.FC = () => {

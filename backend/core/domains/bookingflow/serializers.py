@@ -2,6 +2,7 @@
 from core.domains.events.serializers import EventTypeSerializer
 from core.domains.products.serializers import ProductOptionSerializer
 from core.domains.questionnaires.serializers import QuestionnaireSerializer
+from core.domains.workflows.basic_serializers import WorkflowTemplateSerializer
 from rest_framework import serializers
 
 from .models import (
@@ -139,17 +140,20 @@ class ConfirmationConfigurationSerializer(serializers.ModelSerializer):
 # Booking Flow serializers
 class BookingFlowSerializer(serializers.ModelSerializer):
     event_type_details = EventTypeSerializer(source='event_type', read_only=True)
+    workflow_template_details = WorkflowTemplateSerializer(source='workflow_template', read_only=True)
     
     class Meta:
         model = BookingFlow
         fields = [
             'id', 'name', 'description', 'event_type', 'event_type_details',
-            'is_active', 'created_at', 'updated_at',
+            'workflow_template', 'workflow_template_details', 'is_active', 
+            'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 class BookingFlowDetailSerializer(serializers.ModelSerializer):
     event_type_details = EventTypeSerializer(source='event_type', read_only=True)
+    workflow_template_details = WorkflowTemplateSerializer(source='workflow_template', read_only=True)
     intro_config = IntroConfigurationSerializer(read_only=True)
     date_config = DateConfigurationSerializer(read_only=True)
     questionnaire_config = QuestionnaireConfigurationSerializer(read_only=True)
@@ -163,7 +167,8 @@ class BookingFlowDetailSerializer(serializers.ModelSerializer):
         model = BookingFlow
         fields = [
             'id', 'name', 'description', 'event_type', 'event_type_details',
-            'is_active', 'intro_config', 'date_config', 'questionnaire_config',
+            'workflow_template', 'workflow_template_details', 'is_active', 
+            'intro_config', 'date_config', 'questionnaire_config',
             'package_config', 'addon_config', 'summary_config', 'payment_config',
             'confirmation_config', 'created_at', 'updated_at',
         ]

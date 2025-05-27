@@ -151,11 +151,19 @@ backend_files = [
     "backend/core/domains/bookingflow/views.py",
     "backend/core/domains/bookingflow/urls.py",
     "backend/core/domains/bookingflow/services.py",
-    "backend/core/domains/products/models.py",
-    "backend/core/domains/products/serializers.py",
-    "backend/core/domains/questionnaires/models.py",
-    "backend/core/domains/questionnaires/basic_serializers.py",
-    "backend/core/domains/questionnaires/serializers.py",
+    "backend/core/domains/workflows/models.py",
+    "backend/core/domains/workflows/basic_serializers.py",
+    "backend/core/domains/workflows/serializers.py",
+    "backend/core/domains/workflows/views.py",
+    "backend/core/domains/workflows/urls.py",
+    "backend/core/domains/workflows/services.py",
+    "backend/core/domains/events/models.py",
+    "backend/core/domains/events/basic_serializers.py",
+    "backend/core/domains/events/serializers.py",
+    "backend/core/domains/events/views.py",
+    "backend/core/domains/events/urls.py",
+    "backend/core/domains/events/services.py",
+    
     
 ]
     
@@ -164,16 +172,22 @@ admin_crm_files = [
     "frontend/admin-crm/src/App.tsx",
     "frontend/admin-crm/src/apis/workflows.api.ts",
     "frontend/admin-crm/src/hooks/useWorkflows.ts",
-    "frontend/admin-crm/src/components/workflows/WorkflowStageDialog.tsx",
-    "frontend/admin-crm/src/components/workflows/WorkflowStageItem.tsx.tsx",
-    "frontend/admin-crm/src/components/workflows/WorkflowStageTabs.tsx",
     "frontend/admin-crm/src/components/workflows/WorkflowTemplateDialog.tsx",
-    "frontend/admin-crm/src/components/workflows/WorkflowTemplateItem.tsx",
     "frontend/admin-crm/src/pages/settings/workflows/Workflows.tsx",
-    "frontend/admin-crm/src/types/workflows.types.ts",]
+    "frontend/admin-crm/src/types/workflows.types.ts",
+    "frontend/admin-crm/src/components/bookingflow/BookingFlowDialog.tsx",
+    "frontend/admin-crm/src/types/bookingflow.types.ts",
+]
+
+client_portal_files = [
+    "frontend/client-portal/src/apis/booking.api.ts",
+    "frontend/client-portal/src/hooks/useClientBooking.ts",
+    "frontend/client-portal/src/types/booking.types.ts",
+    "frontend/client-portal/src/types/events.types.ts",
+]
 
 url_paths = [
-    *backend_files
+    *backend_files, *admin_crm_files, *client_portal_files
 ]
 
 export_files(url_paths)

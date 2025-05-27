@@ -1,13 +1,17 @@
 // frontend/admin-crm/src/pages/settings/bookingflow/BookingFlows.tsx
 import {
   Add as AddIcon,
-  BookOnline as BookingIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
   Search as SearchIcon,
+  Settings as SettingsIcon,
 } from "@mui/icons-material";
 import {
   Alert,
   Box,
   Button,
+  Card,
+  CardContent,
   Chip,
   CircularProgress,
   Dialog,
@@ -18,25 +22,29 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
+  IconButton,
   InputAdornment,
   InputLabel,
-  List,
-  ListItem,
   MenuItem,
   Select,
   SelectChangeEvent,
   Switch,
   Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
   Tabs,
   TextField,
   Typography,
 } from "@mui/material";
-import { useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import React, { useState } from "react";
-import {
-  BookingFlowDialog,
-  BookingFlowItem,
-} from "../../../components/bookingflow";
+import { bookingFlowApi } from "../../../apis/bookingflow.api";
+import { BookingFlowDialog } from "../../../components/bookingflow/BookingFlowDialog";
 import AddonConfigForm from "../../../components/bookingflow/steps/AddonConfigForm";
 import ConfirmationConfigForm from "../../../components/bookingflow/steps/ConfirmationConfigForm";
 import DateConfigForm from "../../../components/bookingflow/steps/DateConfigForm";
@@ -50,33 +58,25 @@ import {
   useBookingFlow,
   useBookingFlows,
 } from "../../../hooks/useBookingFlows";
-import { useEventTypes } from "../../../hooks/useEventTypes";
 import { useProducts } from "../../../hooks/useProducts";
 import { useQuestionnaires } from "../../../hooks/useQuestionnaires";
 import {
   BookingFlow,
-  BookingFlowDetail, // Make sure to import this type
   BookingFlowFormData,
   BookingFlowFormErrors,
 } from "../../../types/bookingflow.types";
+import { EventType } from "../../../types/events.types";
+import { WorkflowTemplate } from "../../../types/workflows.types";
 
-// Step tab type definition
-type StepTabType =
-  | "INTRO"
-  | "DATE"
-  | "QUESTIONNAIRE"
-  | "PACKAGE"
-  | "ADDON"
-  | "SUMMARY"
-  | "PAYMENT"
-  | "CONFIRMATION";
-
-// Step tab information
-interface StepTabInfo {
-  id: StepTabType;
-  label: string;
-  icon: React.ReactElement;
-}
+type ConfigStep =
+  | "intro"
+  | "date"
+  | "questionnaire"
+  | "package"
+  | "addon"
+  | "summary"
+  | "payment"
+  | "confirmation";
 
 const BookingFlows: React.FC = () => {
   // State for search and filters
@@ -84,112 +84,62 @@ const BookingFlows: React.FC = () => {
   const [eventTypeFilter, setEventTypeFilter] = useState<number | null>(null);
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // State for selected flow and tab
+  // State for dialogs and configuration
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [selectedFlow, setSelectedFlow] = useState<BookingFlow | null>(null);
-  const [currentStep, setCurrentStep] = useState<StepTabType>("INTRO");
-
-  // State for dialogs
-  const [flowDialogOpen, setFlowDialogOpen] = useState(false);
-  const [deleteFlowDialogOpen, setDeleteFlowDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [currentConfigStep, setCurrentConfigStep] =
+    useState<ConfigStep>("intro");
 
-  // Form states
-  const initialFlowForm: BookingFlowFormData = {
+  // Form state
+  const initialForm: BookingFlowFormData = {
     name: "",
     description: "",
     event_type: null,
+    workflow_template: null,
     is_active: true,
   };
-  const [flowForm, setFlowForm] =
-    useState<BookingFlowFormData>(initialFlowForm);
+  const [flowForm, setFlowForm] = useState<BookingFlowFormData>(initialForm);
   const [flowFormErrors, setFlowFormErrors] = useState<BookingFlowFormErrors>(
     {}
   );
 
   // Use custom hooks for data fetching
-  const queryClient = useQueryClient();
   const {
     flows,
     totalCount,
     isLoading,
+    eventTypes,
+    isLoadingEventTypes,
+    workflowTemplates,
+    isLoadingWorkflowTemplates,
     createFlow,
     isCreatingFlow,
     updateFlow,
     isUpdatingFlow,
     deleteFlow,
     isDeletingFlow,
-    updateQuestionnaireConfig,
-    updatePackageConfig,
-    updateAddonConfig,
-    updateConfirmationConfig,
-    updateIntroConfig,
-    updateDateConfig,
-    updateSummaryConfig,
-    updatePaymentConfig,
-  } = useBookingFlows(page + 1, eventTypeFilter || undefined, searchTerm);
+  } = useBookingFlows(
+    page + 1,
+    eventTypeFilter || undefined,
+    showActiveOnly || undefined,
+    searchTerm || undefined
+  );
 
-  const {
-    flow: flowDetails,
-    isLoading: isLoadingFlow,
-    refetch: refetchFlow,
-  } = useBookingFlow(selectedFlow?.id) as {
-    flow: BookingFlowDetail | null; // Explicitly type flowDetails as BookingFlowDetail
-    isLoading: boolean;
-    refetch: () => void;
-  };
+  // Get detailed booking flow for configuration
+  const { flow: selectedFlowDetails, isLoading: isLoadingFlowDetails } =
+    useBookingFlow(selectedFlow?.id);
 
-  const { eventTypes, isLoading: isLoadingEventTypes } = useEventTypes();
-  const { questionnaires, isLoading: isLoadingQuestionnaires } =
-    useQuestionnaires();
-  const { products: allProducts, isLoading: isLoadingProducts } = useProducts();
+  // Get additional data for configuration forms
+  const { products = [] } = useProducts();
+  const { questionnaires = [] } = useQuestionnaires();
 
-  // Step tabs definition
-  const stepTabs: StepTabInfo[] = [
-    {
-      id: "INTRO",
-      label: "Introduction",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "DATE",
-      label: "Date Selection",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "QUESTIONNAIRE",
-      label: "Questionnaire",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "PACKAGE",
-      label: "Packages",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "ADDON",
-      label: "Add-ons",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "SUMMARY",
-      label: "Summary",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "PAYMENT",
-      label: "Payment",
-      icon: <BookingIcon fontSize="small" />,
-    },
-    {
-      id: "CONFIRMATION",
-      label: "Confirmation",
-      icon: <BookingIcon fontSize="small" />,
-    },
-  ];
-
-  // Handle flow form change
-  const handleFlowFormChange = (
+  // Handle form change
+  const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
@@ -213,12 +163,23 @@ const BookingFlows: React.FC = () => {
     const value = e.target.value === "" ? null : Number(e.target.value);
     setFlowForm({
       ...flowForm,
-      event_type: value, // This should be a number, not an EventType object
+      event_type: value,
     });
   };
 
-  // Validate flow form
-  const validateFlowForm = (): boolean => {
+  // Handle workflow template change
+  const handleWorkflowTemplateChange = (
+    e: SelectChangeEvent<string | number>
+  ) => {
+    const value = e.target.value === "" ? null : Number(e.target.value);
+    setFlowForm({
+      ...flowForm,
+      workflow_template: value,
+    });
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
     const errors: BookingFlowFormErrors = {};
     let isValid = true;
 
@@ -236,432 +197,490 @@ const BookingFlows: React.FC = () => {
     return isValid;
   };
 
-  // Handle save flow
-  const handleSaveFlow = () => {
-    if (validateFlowForm()) {
+  // Handle save
+  const handleSave = () => {
+    if (validateForm()) {
       if (editMode && selectedFlow) {
         updateFlow({ id: selectedFlow.id, flowData: flowForm });
       } else {
         createFlow(flowForm);
       }
-      setFlowDialogOpen(false);
-      resetFlowForm();
+      setDialogOpen(false);
+      resetForm();
     }
   };
 
-  // Reset flow form
-  const resetFlowForm = () => {
-    setFlowForm(initialFlowForm);
+  // Reset form
+  const resetForm = () => {
+    setFlowForm(initialForm);
     setFlowFormErrors({});
     setEditMode(false);
+    setSelectedFlow(null);
   };
 
-  // Handle edit flow
-  const handleEditFlow = (flow: BookingFlow) => {
+  // Handle edit
+  const handleEdit = (flow: BookingFlow) => {
     setFlowForm({
       name: flow.name,
       description: flow.description,
       event_type:
         typeof flow.event_type === "number"
           ? flow.event_type
-          : flow.event_type
-          ? flow.event_type.id
-          : null,
+          : flow.event_type.id,
+      workflow_template: flow.workflow_template
+        ? typeof flow.workflow_template === "number"
+          ? flow.workflow_template
+          : flow.workflow_template.id
+        : null,
       is_active: flow.is_active,
     });
-    setEditMode(true);
-    setFlowDialogOpen(true);
-  };
-
-  // Handle flow selection
-  const handleSelectFlow = (flow: BookingFlow) => {
     setSelectedFlow(flow);
-    // Reset to INTRO tab when selecting a new flow
-    setCurrentStep("INTRO");
+    setEditMode(true);
+    setDialogOpen(true);
   };
 
-  // Handle tab change
-  const handleStepChange = (
-    event: React.SyntheticEvent,
-    newValue: StepTabType
-  ) => {
-    setCurrentStep(newValue);
+  // Handle configure
+  const handleConfigure = (flow: BookingFlow) => {
+    setSelectedFlow(flow);
+    setCurrentConfigStep("intro");
+    setConfigDialogOpen(true);
   };
 
-  // Handle delete flow confirmation
-  const handleDeleteFlow = () => {
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
     if (selectedFlow) {
       deleteFlow(selectedFlow.id);
-      setDeleteFlowDialogOpen(false);
+      setDeleteDialogOpen(false);
       setSelectedFlow(null);
     }
   };
 
-  // Handle saving configuration updates
-  // Updated handleConfigSave function for BookingFlows.tsx
-  const handleConfigSave = (configData: any) => {
-    if (selectedFlow && flowDetails) {
-      switch (currentStep) {
-        case "INTRO":
-          updateIntroConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "DATE":
-          updateDateConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "QUESTIONNAIRE":
-          updateQuestionnaireConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "PACKAGE":
-          updatePackageConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "ADDON":
-          updateAddonConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "SUMMARY":
-          updateSummaryConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "PAYMENT":
-          updatePaymentConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        case "CONFIRMATION":
-          updateConfirmationConfig({
-            flowId: selectedFlow.id,
-            configData,
-          });
-          break;
-        default:
-          console.error(`Unknown step: ${currentStep}`);
+  // Handle page change
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Get event type name
+  const getEventTypeName = (eventType: number | EventType): string => {
+    if (typeof eventType === "number") {
+      const type = eventTypes.find((et) => et.id === eventType);
+      return type?.name || "Unknown";
+    }
+    return eventType.name;
+  };
+
+  // Get workflow template name
+  const getWorkflowTemplateName = (
+    workflowTemplate: number | WorkflowTemplate | null | undefined
+  ): string => {
+    if (!workflowTemplate) return "None";
+    if (typeof workflowTemplate === "number") {
+      const template = workflowTemplates.find(
+        (wt) => wt.id === workflowTemplate
+      );
+      return template?.name || "Unknown";
+    }
+    return workflowTemplate.name;
+  };
+
+  // Render configuration step content
+  const renderConfigStepContent = () => {
+    if (!selectedFlowDetails) return null;
+
+    const handleConfigSave = async (configData: any) => {
+      if (!selectedFlow) return;
+
+      try {
+        switch (currentConfigStep) {
+          case "intro":
+            await bookingFlowApi.updateIntroConfig(selectedFlow.id, configData);
+            break;
+          case "date":
+            await bookingFlowApi.updateDateConfig(selectedFlow.id, configData);
+            break;
+          case "questionnaire":
+            await bookingFlowApi.updateQuestionnaireConfig(
+              selectedFlow.id,
+              configData
+            );
+            break;
+          case "package":
+            await bookingFlowApi.updatePackageConfig(
+              selectedFlow.id,
+              configData
+            );
+            break;
+          case "addon":
+            await bookingFlowApi.updateAddonConfig(selectedFlow.id, configData);
+            break;
+          case "summary":
+            await bookingFlowApi.updateSummaryConfig(
+              selectedFlow.id,
+              configData
+            );
+            break;
+          case "payment":
+            await bookingFlowApi.updatePaymentConfig(
+              selectedFlow.id,
+              configData
+            );
+            break;
+          case "confirmation":
+            await bookingFlowApi.updateConfirmationConfig(
+              selectedFlow.id,
+              configData
+            );
+            break;
+        }
+        // Optionally show success message
+        console.log("Configuration saved successfully");
+      } catch (error) {
+        console.error("Error saving configuration:", error);
+        // Handle error - could show toast notification
       }
+    };
+
+    const commonProps = {
+      isLoading: false,
+      onSave: handleConfigSave,
+    };
+
+    switch (currentConfigStep) {
+      case "intro":
+        return (
+          <IntroConfigForm
+            initialConfig={selectedFlowDetails.intro_config}
+            {...commonProps}
+          />
+        );
+      case "date":
+        return (
+          <DateConfigForm
+            initialConfig={selectedFlowDetails.date_config}
+            {...commonProps}
+          />
+        );
+      case "questionnaire":
+        return (
+          <QuestionnaireConfigForm
+            initialConfig={selectedFlowDetails.questionnaire_config}
+            questionnaires={questionnaires}
+            {...commonProps}
+          />
+        );
+      case "package":
+        return (
+          <PackageConfigForm
+            initialConfig={selectedFlowDetails.package_config}
+            products={products}
+            {...commonProps}
+          />
+        );
+      case "addon":
+        return (
+          <AddonConfigForm
+            initialConfig={selectedFlowDetails.addon_config}
+            products={products}
+            {...commonProps}
+          />
+        );
+      case "summary":
+        return (
+          <SummaryConfigForm
+            initialConfig={selectedFlowDetails.summary_config}
+            {...commonProps}
+          />
+        );
+      case "payment":
+        return (
+          <PaymentConfigForm
+            initialConfig={selectedFlowDetails.payment_config}
+            {...commonProps}
+          />
+        );
+      case "confirmation":
+        return (
+          <ConfirmationConfigForm
+            initialConfig={selectedFlowDetails.confirmation_config}
+            {...commonProps}
+          />
+        );
+      default:
+        return null;
     }
   };
+
+  const filteredFlows = flows.filter((flow) => {
+    if (showActiveOnly && !flow.is_active) return false;
+    return true;
+  });
 
   return (
     <SettingsLayout
       title="Booking Flows"
-      description="Manage booking flows with fixed steps for your events"
+      description="Manage booking flows for your events"
     >
-      <Box sx={{ display: "flex", height: "100%" }}>
-        {/* Left sidebar - Flow list */}
-        <Box
-          sx={{
-            width: 300,
-            mr: 3,
-            borderRight: "1px solid",
-            borderColor: "divider",
-            height: "100%",
-            pr: 2,
-          }}
-        >
+      <Card>
+        <CardContent>
+          {/* Header with search and filters */}
           <Box
             sx={{
-              mb: 2,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              mb: 3,
             }}
           >
-            <TextField
-              size="small"
-              placeholder="Search flows..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ flexGrow: 1, mr: 1 }}
-            />
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <TextField
+                size="small"
+                placeholder="Search booking flows..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ minWidth: 250 }}
+              />
+
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel>Filter by Event Type</InputLabel>
+                <Select
+                  value={eventTypeFilter || ""}
+                  onChange={(e) =>
+                    setEventTypeFilter(
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
+                  label="Filter by Event Type"
+                >
+                  <MenuItem value="">All Event Types</MenuItem>
+                  {eventTypes.map((eventType) => (
+                    <MenuItem key={eventType.id} value={eventType.id}>
+                      {eventType.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={showActiveOnly}
+                    onChange={(e) => setShowActiveOnly(e.target.checked)}
+                  />
+                }
+                label="Active only"
+              />
+            </Box>
+
             <Button
               variant="contained"
-              size="small"
               startIcon={<AddIcon />}
               onClick={() => {
-                resetFlowForm();
-                setFlowDialogOpen(true);
+                resetForm();
+                setDialogOpen(true);
               }}
             >
-              New
+              New Booking Flow
             </Button>
           </Box>
 
-          <Box sx={{ mb: 2 }}>
-            <FormControl size="small" fullWidth variant="outlined">
-              <InputLabel id="event-type-filter-label">
-                Filter by Event Type
-              </InputLabel>
-              <Select
-                labelId="event-type-filter-label"
-                value={eventTypeFilter || ""}
-                onChange={(e) =>
-                  setEventTypeFilter(
-                    e.target.value ? Number(e.target.value) : null
-                  )
-                }
-                label="Filter by Event Type"
-              >
-                <MenuItem value="">All Event Types</MenuItem>
-                {eventTypes.map((eventType) => (
-                  <MenuItem key={eventType.id} value={eventType.id}>
-                    {eventType.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showActiveOnly}
-                onChange={(e) => setShowActiveOnly(e.target.checked)}
-              />
-            }
-            label="Show active only"
-          />
-
-          <Divider sx={{ my: 2 }} />
-
+          {/* Loading state */}
           {isLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress />
             </Box>
-          ) : flows.length === 0 ? (
-            <Alert severity="info">No booking flows found</Alert>
+          ) : filteredFlows.length === 0 ? (
+            <Alert severity="info">
+              No booking flows found. Create your first booking flow to get
+              started.
+            </Alert>
           ) : (
-            <List sx={{ overflow: "auto", maxHeight: "calc(100vh - 300px)" }}>
-              {flows
-                .filter(
-                  (flow: BookingFlow) => !showActiveOnly || flow.is_active
-                )
-                .map((flow: BookingFlow) => (
-                  <ListItem key={flow.id} disablePadding sx={{ mb: 1 }}>
-                    <BookingFlowItem
-                      flow={flow}
-                      selected={selectedFlow?.id === flow.id}
-                      onSelect={handleSelectFlow}
-                      onEdit={handleEditFlow}
-                      onDelete={(flow: BookingFlow) => {
-                        setSelectedFlow(flow);
-                        setDeleteFlowDialogOpen(true);
-                      }}
-                    />
-                  </ListItem>
-                ))}
-            </List>
-          )}
-        </Box>
-
-        {/* Main content area - Step configuration */}
-        <Box sx={{ flexGrow: 1 }}>
-          {selectedFlow ? (
             <>
-              {selectedFlow && flowDetails && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6">{flowDetails.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {flowDetails.description}
-                  </Typography>
+              {/* Table */}
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Event Type</TableCell>
+                      <TableCell>Workflow Template</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Created</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredFlows.map((flow) => (
+                      <TableRow key={flow.id} hover>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="subtitle2">
+                              {flow.name}
+                            </Typography>
+                            {flow.description && (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 0.5 }}
+                              >
+                                {flow.description}
+                              </Typography>
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          {getEventTypeName(flow.event_type)}
+                        </TableCell>
+                        <TableCell>
+                          {getWorkflowTemplateName(flow.workflow_template)}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={flow.is_active ? "Active" : "Inactive"}
+                            color={flow.is_active ? "success" : "default"}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {formatDistanceToNow(new Date(flow.created_at), {
+                            addSuffix: true,
+                          })}
+                        </TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleConfigure(flow)}
+                            sx={{ mr: 1 }}
+                            title="Configure Steps"
+                          >
+                            <SettingsIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEdit(flow)}
+                            sx={{ mr: 1 }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedFlow(flow);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-                  <Box
-                    sx={{ mt: 1, display: "flex", flexWrap: "wrap", gap: 1 }}
-                  >
-                    {flowDetails.event_type_details && (
-                      <Chip
-                        label={`Event Type: ${flowDetails.event_type_details.name}`}
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                      />
-                    )}
-
-                    <Chip
-                      label={flowDetails.is_active ? "Active" : "Inactive"}
-                      size="small"
-                      color={flowDetails.is_active ? "success" : "default"}
-                    />
-                  </Box>
-                </Box>
-              )}
-              {selectedFlow && isLoadingFlow && (
-                <Box sx={{ display: "flex", justifyContent: "center", my: 2 }}>
-                  <CircularProgress />
-                </Box>
-              )}
-
-              <Divider sx={{ mb: 2 }} />
-
-              {/* Step tabs */}
-              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-                <Tabs
-                  value={currentStep}
-                  onChange={handleStepChange}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  aria-label="booking flow step tabs"
-                >
-                  {stepTabs.map((tab) => (
-                    <Tab
-                      key={tab.id}
-                      value={tab.id}
-                      icon={tab.icon}
-                      label={tab.label}
-                      iconPosition="start"
-                    />
-                  ))}
-                </Tabs>
-              </Box>
-
-              {/* Step configuration forms */}
-              <Box sx={{ mt: 3 }}>
-                {flowDetails && !isLoadingFlow && (
-                  <>
-                    {currentStep === "INTRO" && (
-                      <IntroConfigForm
-                        initialConfig={flowDetails.intro_config}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "DATE" && (
-                      <DateConfigForm
-                        initialConfig={flowDetails.date_config}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "QUESTIONNAIRE" && (
-                      <QuestionnaireConfigForm
-                        initialConfig={flowDetails.questionnaire_config}
-                        questionnaires={questionnaires}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "PACKAGE" && (
-                      <PackageConfigForm
-                        initialConfig={flowDetails.package_config}
-                        products={allProducts.filter((p) => p.is_active)}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "ADDON" && (
-                      <AddonConfigForm
-                        initialConfig={flowDetails.addon_config}
-                        products={allProducts.filter((p) => p.is_active)}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "SUMMARY" && (
-                      <SummaryConfigForm
-                        initialConfig={flowDetails.summary_config}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "PAYMENT" && (
-                      <PaymentConfigForm
-                        initialConfig={flowDetails.payment_config}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                    {currentStep === "CONFIRMATION" && (
-                      <ConfirmationConfigForm
-                        initialConfig={flowDetails.confirmation_config}
-                        onSave={handleConfigSave}
-                      />
-                    )}
-                  </>
-                )}
-              </Box>
-            </>
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                p: 4,
-              }}
-            >
-              <BookingIcon
-                sx={{ fontSize: 60, color: "text.secondary", mb: 2 }}
+              {/* Pagination */}
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={totalCount}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
               />
-              <Typography variant="h6" gutterBottom>
-                No Booking Flow Selected
-              </Typography>
-              <Typography variant="body2" color="text.secondary" align="center">
-                Select a booking flow from the sidebar or create a new one to
-                manage its configuration.
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  resetFlowForm();
-                  setFlowDialogOpen(true);
-                }}
-              >
-                Create New Booking Flow
-              </Button>
-            </Box>
+            </>
           )}
-        </Box>
-      </Box>
+        </CardContent>
+      </Card>
 
-      {/* Flow Dialog */}
+      {/* Booking Flow Dialog */}
       <BookingFlowDialog
-        open={flowDialogOpen}
-        onClose={() => setFlowDialogOpen(false)}
-        onSave={handleSaveFlow}
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSave={handleSave}
         flowForm={flowForm}
         flowFormErrors={flowFormErrors}
-        onChange={handleFlowFormChange}
+        onChange={handleFormChange}
         onEventTypeChange={handleEventTypeChange}
+        onWorkflowTemplateChange={handleWorkflowTemplateChange}
         eventTypes={eventTypes}
+        workflowTemplates={workflowTemplates}
         isLoading={isCreatingFlow || isUpdatingFlow}
         editMode={editMode}
       />
 
-      {/* Delete Flow Confirmation Dialog */}
+      {/* Configuration Dialog */}
       <Dialog
-        open={deleteFlowDialogOpen}
-        onClose={() => setDeleteFlowDialogOpen(false)}
+        open={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>Configure Booking Flow: {selectedFlow?.name}</DialogTitle>
+        <DialogContent>
+          {isLoadingFlowDetails ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box sx={{ mt: 2 }}>
+              <Tabs
+                value={currentConfigStep}
+                onChange={(_, newValue) => setCurrentConfigStep(newValue)}
+                variant="scrollable"
+                scrollButtons="auto"
+              >
+                <Tab label="Introduction" value="intro" />
+                <Tab label="Date Selection" value="date" />
+                <Tab label="Questionnaire" value="questionnaire" />
+                <Tab label="Packages" value="package" />
+                <Tab label="Add-ons" value="addon" />
+                <Tab label="Summary" value="summary" />
+                <Tab label="Payment" value="payment" />
+                <Tab label="Confirmation" value="confirmation" />
+              </Tabs>
+
+              <Divider />
+
+              <Box sx={{ mt: 3 }}>{renderConfigStepContent()}</Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfigDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
       >
         <DialogTitle>Delete Booking Flow</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete the booking flow "
-            {selectedFlow?.name}"? This will also delete all associated
-            configurations. This action cannot be undone.
+            {selectedFlow?.name}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteFlowDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
           <Button
-            onClick={handleDeleteFlow}
+            onClick={handleDeleteConfirm}
             variant="contained"
             color="error"
             disabled={isDeletingFlow}

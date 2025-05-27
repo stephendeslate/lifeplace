@@ -2,6 +2,7 @@
 import { EventType } from "./events.types";
 import { ProductOption } from "./products.types";
 import { Questionnaire } from "./questionnaires.types";
+import { WorkflowTemplate } from "./workflows.types";
 
 // Main booking flow interfaces
 export interface BookingFlow {
@@ -10,6 +11,8 @@ export interface BookingFlow {
   description: string;
   event_type: number | EventType;
   event_type_details?: EventType;
+  workflow_template?: number | WorkflowTemplate | null;
+  workflow_template_details?: WorkflowTemplate;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -208,6 +211,7 @@ export interface EventCreateData {
     field: number;
     value: string;
   }[];
+  booking_flow_id?: number; // Optional booking flow ID for workflow assignment
 }
 
 // Payment creation interface

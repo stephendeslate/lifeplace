@@ -252,8 +252,11 @@ export const useClientBooking = () => {
         ),
       };
 
-      // First, create the event
-      const result = await bookingClientApi.createEvent(eventData);
+      // First, create the event with booking flow context
+      const result = await bookingClientApi.createEvent(
+        eventData,
+        state.flowId || undefined
+      );
       const eventId = result.id;
 
       // Now that we have the event ID, create the event products
@@ -298,7 +301,22 @@ export const useClientBooking = () => {
       showToast("Failed to create booking", "error");
       return false;
     }
-  }, [state.formData, user, dispatch, showToast]);
+  }, [
+    user,
+    state.formData.eventType,
+    state.formData.startDate,
+    state.formData.startTime,
+    state.formData.endDate,
+    state.formData.eventName,
+    state.formData.totalPrice,
+    state.formData.questionnaireResponses,
+    state.formData.endTime,
+    state.formData.selectedPackages,
+    state.formData.selectedAddons,
+    state.flowId,
+    dispatch,
+    showToast,
+  ]);
 
   // Process payment
   const processPayment = useCallback(async () => {

@@ -17,6 +17,14 @@ class BookingFlow(models.Model):
         on_delete=models.CASCADE, 
         related_name='booking_flows'
     )
+    workflow_template = models.ForeignKey(
+        'workflows.WorkflowTemplate',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='booking_flows',
+        help_text="Workflow template to assign to events created through this booking flow"
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,6 +1,8 @@
 # backend/core/domains/bookingflow/views.py
 from core.domains.events.models import EventType
 from core.domains.events.serializers import EventTypeSerializer
+from core.domains.workflows.basic_serializers import WorkflowTemplateSerializer
+from core.domains.workflows.models import WorkflowTemplate
 from core.utils.permissions import IsAdmin, IsAdminOrClient
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -107,6 +109,13 @@ class BookingFlowViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = self.get_serializer(active_flows, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def workflow_templates(self, request):
+        """Get available workflow templates for assignment"""
+        templates = WorkflowTemplate.objects.filter(is_active=True).order_by('name')
+        serializer = WorkflowTemplateSerializer(templates, many=True)
         return Response(serializer.data)
     
     @action(detail=True, methods=['get', 'put', 'patch'])

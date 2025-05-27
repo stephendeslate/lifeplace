@@ -149,28 +149,64 @@ class EventService:
             raise EventNotFound()
     
     @staticmethod
-    def create_event(validated_data, user):
+    def create_event(validated_data, user, booking_flow_id=None):
+        """Create a new event with optional workflow template from booking flow"""
         print("EventService.create_event validated data:", validated_data)  # Debug
+        
         with transaction.atomic():
             tasks_data = validated_data.pop('tasks', [])
             event_products_data = validated_data.pop('event_products', [])
             print("EventService event products data:", event_products_data)  # Debug
+            
+            # Check if booking flow has a workflow template
+            workflow_template = None
+            if booking_flow_id:
+                try:
+                    from core.domains.bookingflow.models import BookingFlow
+                    booking_flow = BookingFlow.objects.select_related('workflow_template').get(
+                        id=booking_flow_id, is_active=True
+                    )
+                    if booking_flow.workflow_template and booking_flow.workflow_template.is_active:
+                        workflow_template = booking_flow.workflow_template
+                        # Set the first stage as current stage if workflow has stages
+                        first_stage = workflow_template.stages.filter(
+                            stage='LEAD'
+                        ).order_by('order').first()
+                        if first_stage:
+                            validated_data['current_stage'] = first_stage
+                        logger.info(f"Assigned workflow template '{workflow_template.name}' to event from booking flow")
+                except Exception as e:
+                    logger.warning(f"Could not assign workflow from booking flow {booking_flow_id}: {e}")
+            
+            # Add workflow template to event data if found
+            if workflow_template:
+                validated_data['workflow_template'] = workflow_template
+            
             event = Event.objects.create(**validated_data)
             print("EventService event created with ID:", event.id)  # Debug
+            
             for task_data in tasks_data:
                 task_data['event'] = event
                 EventTask.objects.create(**task_data)
+            
             for product_data in event_products_data:
                 print("EventService creating EventProductOption with data:", product_data)  # Debug
                 product_data['event'] = event
                 EventProductOption.objects.create(**product_data)
+            
+            # Create timeline entry
+            timeline_description = 'Event created'
+            if workflow_template:
+                timeline_description += f' with workflow: {workflow_template.name}'
+            
             EventTimeline.objects.create(
                 event=event,
                 action_type='SYSTEM_UPDATE',
-                description='Event created',
+                description=timeline_description,
                 actor=user,
                 is_public=True
             )
+            
             return event
     
     @staticmethod

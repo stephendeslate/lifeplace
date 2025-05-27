@@ -2,6 +2,7 @@
 import { EventType } from "./events.types";
 import { ProductOption } from "./products.types";
 import { Questionnaire } from "./questionnaires.types";
+import { WorkflowTemplate } from "./workflows.types";
 
 // Base booking flow interface
 export interface BookingFlow {
@@ -10,6 +11,8 @@ export interface BookingFlow {
   description: string;
   event_type: number | EventType;
   event_type_details?: EventType;
+  workflow_template?: number | WorkflowTemplate | null;
+  workflow_template_details?: WorkflowTemplate;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -151,6 +154,7 @@ export interface BookingFlowFormData {
   name: string;
   description: string;
   event_type: number | null;
+  workflow_template: number | null;
   is_active: boolean;
 }
 
@@ -158,5 +162,6 @@ export interface BookingFlowFormErrors {
   name?: string;
   description?: string;
   event_type?: string;
+  workflow_template?: string;
   is_active?: string;
 }

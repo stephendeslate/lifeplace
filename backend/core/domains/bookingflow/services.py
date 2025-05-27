@@ -57,11 +57,20 @@ class BookingFlowService:
     def create_flow(flow_data):
         """Create a new booking flow with default configurations for all steps"""
         with transaction.atomic():
-            # Create the main flow
+            # Create the main flow - handle event_type and workflow_template properly
+            event_type = flow_data.get('event_type')
+            if hasattr(event_type, 'id'):
+                event_type = event_type.id
+            
+            workflow_template = flow_data.get('workflow_template')
+            if workflow_template and hasattr(workflow_template, 'id'):
+                workflow_template = workflow_template.id
+            
             flow = BookingFlow.objects.create(
                 name=flow_data.get('name'),
                 description=flow_data.get('description', ''),
-                event_type=flow_data.get('event_type'),
+                event_type_id=event_type,
+                workflow_template_id=workflow_template,
                 is_active=flow_data.get('is_active', True)
             )
             
@@ -222,7 +231,21 @@ class BookingFlowService:
             if 'description' in flow_data:
                 flow.description = flow_data['description']
             if 'event_type' in flow_data:
-                flow.event_type_id = flow_data['event_type']
+                # Handle both ID and object cases
+                event_type = flow_data['event_type']
+                if hasattr(event_type, 'id'):
+                    flow.event_type_id = event_type.id
+                else:
+                    flow.event_type_id = event_type
+            if 'workflow_template' in flow_data:
+                # Handle both ID and object cases
+                workflow_template = flow_data['workflow_template']
+                if workflow_template is None:
+                    flow.workflow_template_id = None
+                elif hasattr(workflow_template, 'id'):
+                    flow.workflow_template_id = workflow_template.id
+                else:
+                    flow.workflow_template_id = workflow_template
             if 'is_active' in flow_data:
                 flow.is_active = flow_data['is_active']
             

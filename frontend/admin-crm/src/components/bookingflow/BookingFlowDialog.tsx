@@ -22,6 +22,7 @@ import {
   BookingFlowFormErrors,
 } from "../../types/bookingflow.types";
 import { EventType } from "../../types/events.types";
+import { WorkflowTemplate } from "../../types/workflows.types";
 
 interface BookingFlowDialogProps {
   open: boolean;
@@ -33,7 +34,9 @@ interface BookingFlowDialogProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
   onEventTypeChange: (e: SelectChangeEvent<string | number>) => void;
+  onWorkflowTemplateChange: (e: SelectChangeEvent<string | number>) => void;
   eventTypes: EventType[];
+  workflowTemplates: WorkflowTemplate[];
   isLoading: boolean;
   editMode: boolean;
 }
@@ -46,7 +49,9 @@ export const BookingFlowDialog: React.FC<BookingFlowDialogProps> = ({
   flowFormErrors,
   onChange,
   onEventTypeChange,
+  onWorkflowTemplateChange,
   eventTypes,
+  workflowTemplates,
   isLoading,
   editMode,
 }) => {
@@ -111,6 +116,39 @@ export const BookingFlowDialog: React.FC<BookingFlowDialogProps> = ({
           </Select>
           {flowFormErrors.event_type && (
             <FormHelperText error>{flowFormErrors.event_type}</FormHelperText>
+          )}
+        </FormControl>
+
+        <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+          <InputLabel id="workflow-template-label">
+            Workflow Template
+          </InputLabel>
+          <Select
+            labelId="workflow-template-label"
+            id="workflow_template"
+            name="workflow_template"
+            value={flowForm.workflow_template || ""}
+            onChange={onWorkflowTemplateChange}
+            label="Workflow Template"
+            error={!!flowFormErrors.workflow_template}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {workflowTemplates.map((template) => (
+              <MenuItem key={template.id} value={template.id}>
+                {template.name}
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>
+            Optional: Events created through this booking flow will be assigned
+            this workflow template
+          </FormHelperText>
+          {flowFormErrors.workflow_template && (
+            <FormHelperText error>
+              {flowFormErrors.workflow_template}
+            </FormHelperText>
           )}
         </FormControl>
 

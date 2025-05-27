@@ -147,9 +147,13 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
+        # Extract booking flow ID from request data if provided
+        booking_flow_id = request.data.get('booking_flow_id')
+        
         event = EventService.create_event(
             serializer.validated_data,
-            request.user
+            request.user,
+            booking_flow_id=booking_flow_id
         )
         
         return Response(
